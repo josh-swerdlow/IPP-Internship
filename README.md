@@ -1,5 +1,5 @@
 # IPP Internship
-
+/begin{documentclass}
 My code and files for my IPP Internship in the summer of 2018. 
 ---
 
@@ -13,3 +13,4 @@ Optional Goals:
           - Understand how to use GitHub/BitBucket.
           - Optimize the workflow of fitting and usage of STRAHL.
           - Create good documentation and report of findings.
+\end{documentclass}

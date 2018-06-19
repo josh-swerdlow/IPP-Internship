@@ -11,7 +11,7 @@ ALT-My code and files for my IPP Internship in the summer of 2018.
           * [Possibly] Combined MCMC GP regression 
 
 ## Optional Goals:
-          - Understand how to use GitHub/BitBucket.
-          - Optimize the workflow of fitting and usage of STRAHL.
-          - Create good documentation and report of findings.
+        * Understand how to use GitHub/BitBucket.
+        * Optimize the workflow of fitting and usage of STRAHL.
+        * Create good documentation and report of findings.
 

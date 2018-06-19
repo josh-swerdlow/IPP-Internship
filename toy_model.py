@@ -13,6 +13,8 @@ rndst = np.random.RandomState(0)
 
 
 def init_data(func, samples=10, sigma=0, plot=False):
+    ''' This initializes sample data with noise from a normal distribution
+    '''
 
     # Init DataFrame
     df = pd.DataFrame(
@@ -218,7 +220,8 @@ def main(lin=False, quad=False, cubic=False, spline=False, expon=False):
     # Exponential Fitting
 
 
-main()
+if __name__ == '__main__':
+    main()
 
 
 

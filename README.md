@@ -28,7 +28,7 @@ There is currently no way to use my software.
 ### Prerequisites
 ### Installing
 ### Help
-* **Read the Docs** - [Documentation](ipp-internship.readthedocs.io)
+* **Read the Docs** - [Documentation](https://ipp-internship.readthedocs.io/en/latest/)
 
 
 ## Built With

@@ -4,11 +4,11 @@
 
 import numpy as np
 import pandas as pd
-import seaborn as sns
 import pymc3 as pm
 import matplotlib.pyplot as plt
 import scipy as sp
-sns.set(style="darkgrid", palette="muted")
+
+
 rndst = np.random.RandomState(0)
 
 
@@ -40,7 +40,7 @@ def init_data(func, samples=10, sigma=0, plot=False):
     # Generate noise
     noise = sigma * np.random.normal(0, sigma, samples)
 
-    # Calculate y with noise and put it into the DataFrame
+    # Calculate y with noise added
     df['y'] = func(df['x']) + noise
 
     if plot:
@@ -57,6 +57,7 @@ def mcmc_model(df, beta=0, gamma=0, trace=False, forest=False, post=False,
     # Inititate a basic model #
     mdl = pm.Model()
     with mdl:
+
         # Priors for unknown model data
         # These represent the distributions that will
         # be looked into when tuning the parameters
@@ -197,7 +198,7 @@ def poly_fit(f, df, plot=False):
         plt.show()
 
 
-def main(lin=False, quad=False, cubic=False, spline=False, expon=False):
+def main():
 
     # Initialize function to be fit #
     # def linFunc(x, m, b):

@@ -37,7 +37,18 @@ There is currently no way to use my software.
 
 ## Change-log
 ---
-v0.0.1 - 6.19.18 - Inital release
+v1.0.0 - ??.??.?? - Completed and ready to analyse algorithms.
+
+v0.4.0 - ??.??.?? - Fully implemented all models for more difficult functions with staticial analysis.
+
+v0.3.0 - ??.??.?? - Fully implemented all models for more difficult functions.
+
+v0.2.0 - ??.??.?? - Fully implemented all models for basic functions including statistical analysis.
+
+v0.1.0 - ??.??.?? - Fully implemented all models for basic functions not including statistics.
+
+v0.0.2 - 06.20.18 - Created generateFunction class and peformed unitTests.
+v0.0.1 - 06.19.18 - Inital release
 
 ## Authors
 ---

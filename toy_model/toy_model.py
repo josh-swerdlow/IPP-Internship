@@ -168,7 +168,7 @@ def mcmc_model(df, beta=0, gamma=0, trace=False, forest=False, post=False,
         effect_n_results = pm.diagnostics.effective_n(trace, varnames=mdl.cont_vars)
         print("Effective Sample Size: \n{}\n".format(effect_n_results))
 
-def lstsq_model(df, beta=0, gamma=0, plot=False):
+# def lstsq_model(df, beta=0, gamma=0, plot=False):
     # print(np.ones(df['x'].shape[0]))
     A = np.vstack([df['x'], np.ones(df['x'].shape[0])]).T
     y = df['y']

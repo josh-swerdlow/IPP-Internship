@@ -66,34 +66,27 @@ argument func.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="model.initData">
-<em class="property">class </em><code class="descclassname">model.</code><code class="descname">initData</code><span class="sig-paren">(</span><em>func=None</em>, <em>samples=10</em>, <em>sigma=0</em><span class="sig-paren">)</span><a class="headerlink" href="#model.initData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes a data object according to the given function</p>
+<dt id="data.generateFunction">
+<em class="property">class </em><code class="descclassname">data.</code><code class="descname">generateFunction</code><span class="sig-paren">(</span><em>func=None</em>, <em>sigma=0</em>, <em>samples=10</em><span class="sig-paren">)</span><a class="headerlink" href="#data.generateFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes a function object</p>
 <dl class="docutils">
 <dt>Attributes:</dt>
 <dd><ul class="first last simple">
 <li><strong>func</strong> (lambdaType): a generator based on the desired functional output.</li>
-<li><strong>samples</strong> (int): number of samples.</li>
+<li><strong>indepParam</strong> (list): all the independent parameters in the function.</li>
+<li><strong>depenParam</strong> (list): all the dependent paramters in the function.</li>
 <li><strong>sigma</strong> (int): standard deviation for ‘random’ normal sampling.</li>
+<li><strong>samples</strong> (int): number of samples.</li>
+<li><strong>x</strong> (np.array int): list of values in a given range.</li>
+<li><strong>noise</strong> (np.array int): list of normal-random scaled values.</li>
+<li><strong>y</strong> (np.array int):</li>
 </ul>
 </dd>
 </dl>
 <dl class="method">
-<dt id="model.initData.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.initData.plot" title="Permalink to this definition">¶</a></dt>
+<dt id="data.generateFunction.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data.generateFunction.plot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plots the function</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="model.initData.x">
-<code class="descname">x</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.initData.x" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the depedent data</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="model.initData.y">
-<code class="descname">y</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#model.initData.y" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the noisy independent data</p>
 </dd></dl>
 
 </dd></dl>

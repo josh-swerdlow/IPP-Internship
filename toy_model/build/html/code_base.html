@@ -1,0 +1,196 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Code Base &#8212; Test 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="My Unit Test Scripts" href="unit_tests.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="code-base">
+<h1>Code Base<a class="headerlink" href="#code-base" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="data.generateFunction">
+<em class="property">class </em><code class="descclassname">data.</code><code class="descname">generateFunction</code><span class="sig-paren">(</span><em>func=None</em>, <em>**freeParams</em><span class="sig-paren">)</span><a class="headerlink" href="#data.generateFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a function object that stores certain features of the
+given function; such as, the given free parameters. In addition,
+one can evaluate the function over a range and add noise sampled
+from given normal distribution.</p>
+<dl class="method">
+<dt id="data.generateFunction.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>func=None</em>, <em>**freeParams</em><span class="sig-paren">)</span><a class="headerlink" href="#data.generateFunction.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the function object</p>
+<dl class="docutils">
+<dt>Attributes:</dt>
+<dd><ul class="first last">
+<li><p class="first"><strong>indepParam</strong> (str): name of indepedent variable</p>
+</li>
+<li><dl class="first docutils">
+<dt><strong>func</strong> (function obj): function that has the free</dt>
+<dd><p class="first">parameters input.</p>
+<p>Example:</p>
+<div class="last highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">simpleFunction</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">m</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b</span>
+
+<span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">simpleFunction</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>freeParams</strong> (dict): a dict of the free parameter names and</dt>
+<dd><p class="first last">their values</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Raises:</dt>
+<dd><ul class="first last simple">
+<li><strong>TypeError</strong>: If given None for function</li>
+<li><strong>TypeError</strong>: If not given enough freeParam for the given func</li>
+<li><strong>ValueError</strong>: If the independent variable of func is not ‘x’</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.generateFunction.evaluate">
+<code class="descname">evaluate</code><span class="sig-paren">(</span><em>sigma=0</em>, <em>samples=10</em><span class="sig-paren">)</span><a class="headerlink" href="#data.generateFunction.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluates the function across a sample of data</p>
+<dl class="docutils">
+<dt>Arguments:</dt>
+<dd><ul class="first last simple">
+<li><strong>sigma</strong> (int): the standard deviation</li>
+<li><strong>samples</strong> (int): number of samples for data</li>
+</ul>
+</dd>
+<dt>Attributes:</dt>
+<dd><ul class="first last simple">
+<li><strong>sigma</strong> (int): the standard deviation</li>
+<li><strong>samples</strong> (int): number of samples for data</li>
+<li><strong>x</strong> (np.array int): array of values in a given range.</li>
+<li><strong>noise</strong> (np.array int): array of normal-random scaled values.</li>
+<li><dl class="first docutils">
+<dt><strong>y</strong> (np.array int): array of values output based on your</dt>
+<dd>function with noise included.</dd>
+</dl>
+</li>
+</ul>
+</dd>
+<dt>Raises:</dt>
+<dd><ul class="first last simple">
+<li><strong>ValueError</strong>: If sigma is less than zero</li>
+<li><strong>ValueError</strong>: If samples is less than zero</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.generateFunction.plot">
+<code class="descname">plot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#data.generateFunction.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the function of y=f(x)</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Test</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Code Base</a></li>
+<li class="toctree-l1"><a class="reference internal" href="unit_tests.html">My Unit Test Scripts</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="introduction.html" title="previous chapter">Introduction</a></li>
+      <li>Next: <a href="unit_tests.html" title="next chapter">My Unit Test Scripts</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, JS.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/code_base.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -3,38 +3,39 @@ import matplotlib.pyplot as plt
 
 
 class generateFunction:
-    """ Initializes a function object
+    """ Create a function object that stores certain features of the
+    given function; such as, the given free parameters. In addition,
+    one can evaluate the function over a range and add noise sampled
+    from given normal distribution.
 
-    Attributes:
-        * **func** (function obj): a single variable (f(x)) generator based on
-            the desired functional output. A func should simply return the
-            output required by your function and nothing else. All free
-            parameters should be specified and the independent variable must
-            be x.
-            Example::
-
-                def simpleFunction(x, a, b, c, d):
-                    return a * x + b + c + x ** d
-
-
-        * **indepParam** (list): all the independent parameters in the
-            function.
-
-            Note: This should only be x.
-
-        * **freeParam** (dict): a dict of the free parameter names and their
-            values
-        * **sigma** (int): standard deviation for 'random' normal sampling.
-        * **samples** (int): number of samples.
-        * **x** (np.array int): array of values in a given range.
-        * **noise** (np.array int): array of normal-random scaled values.
-        * **y** (np.array int): array of values output based on your function
-            with noise included.
     """
     rndst = np.random.RandomState(0)
 
     def __init__(self, func=None, **freeParams):
-        """Creates the function object"""
+        """Initializes the function object
+
+        Attributes:
+            * **indepParam** (str): name of indepedent variable
+            * **func** (function obj): function that has the free
+                parameters input.
+
+                Example:
+
+                .. code-block:: python
+
+                    def simpleFunction(x, m, b):
+                        return m * x + b
+
+                    func = lambda x: simpleFunction(x, 1, 2)
+            * **freeParams** (dict): a dict of the free parameter names and
+                their values
+
+        Raises:
+            * **TypeError**: If given None for function
+            * **TypeError**: If not given enough freeParam for the given func
+            * **ValueError**: If the independent variable of func is not 'x'
+
+        """
 
         if func is None:
             print("Error: func must not be None.")
@@ -55,6 +56,25 @@ class generateFunction:
         self.freeParams = freeParams
 
     def evaluate(self, sigma=0, samples=10):
+        """Evaluates the function across a sample of data
+
+        Arguments:
+            * **sigma** (int): the standard deviation
+            * **samples** (int): number of samples for data
+
+        Attributes:
+            * **sigma** (int): the standard deviation
+            * **samples** (int): number of samples for data
+            * **x** (np.array int): array of values in a given range.
+            * **noise** (np.array int): array of normal-random scaled values.
+            * **y** (np.array int): array of values output based on your
+                function with noise included.
+
+        Raises:
+            * **ValueError**: If sigma is less than zero
+            * **ValueError**: If samples is less than zero
+
+        """
         if sigma >= 0:
             self.sigma = sigma
         else:

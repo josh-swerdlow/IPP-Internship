@@ -1,0 +1,218 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>My Unit Test Scripts &#8212; Test 1.0.0 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Code Base" href="code_base.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-test_data">
+<span id="my-unit-test-scripts"></span><h1>My Unit Test Scripts<a class="headerlink" href="#module-test_data" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="test_data.TestDataMethods">
+<em class="property">class </em><code class="descclassname">test_data.</code><code class="descname">TestDataMethods</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="headerlink" href="#test_data.TestDataMethods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test the class data.generateFunction.</p>
+<dl class="method">
+<dt id="test_data.TestDataMethods.test_evaluate">
+<code class="descname">test_evaluate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test_data.TestDataMethods.test_evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test the evaluate method</p>
+<dl class="docutils">
+<dt>Tests:</dt>
+<dd><ul class="first last simple">
+<li>passing a negative sigma</li>
+<li>passing a zero samples</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="test_data.TestDataMethods.test_init">
+<code class="descname">test_init</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test_data.TestDataMethods.test_init" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test initialization method</p>
+<dl class="docutils">
+<dt>Tests:</dt>
+<dd><ul class="first last simple">
+<li>passing None as function parameter</li>
+<li>passing more parameters than the function needs</li>
+<li>passing less parameters than the function needs</li>
+<li><dl class="first docutils">
+<dt>passing a function that does not have ‘x’ as</dt>
+<dd>its independent variable</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="test_data.TestDataMethods.test_linear">
+<code class="descname">test_linear</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test_data.TestDataMethods.test_linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test the class on creating a linear function</p>
+<dl class="docutils">
+<dt>Tests:</dt>
+<dd><ul class="first last simple">
+<li><dl class="first docutils">
+<dt>indep/free parameter tests</dt>
+<dd><ul class="first last">
+<li>total length of parameters</li>
+<li>that we have all the free parameters</li>
+<li>that free parameters are mapped correctly</li>
+<li>that we have the correct indep paramaters</li>
+<li>that we have the correct indep parameter</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>that sigma is what we passed in</li>
+<li>that samples is what we passed in</li>
+<li>that x, noise, and y are all the same length (samples)</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="test_data.TestDataMethods.test_quad">
+<code class="descname">test_quad</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#test_data.TestDataMethods.test_quad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test the class on creating a quadratic function</p>
+<dl class="docutils">
+<dt>Tests:</dt>
+<dd><ul class="first last simple">
+<li><dl class="first docutils">
+<dt>indep/free parameter tests</dt>
+<dd><ul class="first last">
+<li>total length of parameters</li>
+<li>that we have all the free parameters</li>
+<li>that free parameters are mapped correctly</li>
+<li>that we have the correct indep paramaters</li>
+<li>that we have the correct indep parameter</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>that sigma is what we passed in</li>
+<li>that samples is what we passed in</li>
+<li>that x, noise, and y are all the same length (samples)</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="test_data.constFunc">
+<code class="descclassname">test_data.</code><code class="descname">constFunc</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="headerlink" href="#test_data.constFunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>A constant function</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="test_data.linFunc">
+<code class="descclassname">test_data.</code><code class="descname">linFunc</code><span class="sig-paren">(</span><em>x</em>, <em>m</em>, <em>b</em><span class="sig-paren">)</span><a class="headerlink" href="#test_data.linFunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>A linear function</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="test_data.quadFunc">
+<code class="descclassname">test_data.</code><code class="descname">quadFunc</code><span class="sig-paren">(</span><em>x</em>, <em>a</em>, <em>b</em>, <em>c</em><span class="sig-paren">)</span><a class="headerlink" href="#test_data.quadFunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>A quadratic function</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Test</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="code_base.html">Code Base</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">My Unit Test Scripts</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="code_base.html" title="previous chapter">Code Base</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, JS.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/unit_tests.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

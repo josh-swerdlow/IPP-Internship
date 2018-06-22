@@ -1,5 +1,5 @@
 My Unit Test Scripts
 ====================
 
-.. autoclass:: test_data.TestDataMethods
+.. automodule:: test_data
    :members:

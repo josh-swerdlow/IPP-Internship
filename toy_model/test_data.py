@@ -3,21 +3,27 @@ from data import generateFunction
 
 
 def linFunc(x, m, b):
+    """A linear function"""
     return m * x + b
 
 
 def quadFunc(x, a, b, c):
+    """A quadratic function"""
     return a * x**2 + b * x + c
 
 
 def constFunc(a):
+    """A constant function"""
     return a
 
 
 class TestDataMethods(unittest.TestCase):
+    """ Test the class data.generateFunction."""
 
     def test_init(self):
         """ Test initialization method
+
+        Tests:
             * passing None as function parameter
             * passing more parameters than the function needs
             * passing less parameters than the function needs
@@ -39,6 +45,8 @@ class TestDataMethods(unittest.TestCase):
 
     def test_evaluate(self):
         """ Test the evaluate method
+
+        Tests:
             * passing a negative sigma
             * passing a zero samples
         """
@@ -53,15 +61,17 @@ class TestDataMethods(unittest.TestCase):
 
     def test_linear(self):
         """ Test the class on creating a linear function
+
+        Tests:
             * indep/free parameter tests
-                * tests total length of parameters
-                * tests that we have all the free parameters
-                * tests that free parameters are mapped correctly
-                * tests that we have the correct indep paramaters
-                * tests that we have the correct indep parameter
-            * test that sigma is what we passed in
-            * test that samples is what we passed in
-            * tests that x, noise, and y are all the same length (samples)
+                * total length of parameters
+                * that we have all the free parameters
+                * that free parameters are mapped correctly
+                * that we have the correct indep paramaters
+                * that we have the correct indep parameter
+            * that sigma is what we passed in
+            * that samples is what we passed in
+            * that x, noise, and y are all the same length (samples)
         """
 
         sigma = 10
@@ -93,15 +103,17 @@ class TestDataMethods(unittest.TestCase):
 
     def test_quad(self):
         """ Test the class on creating a quadratic function
+
+        Tests:
             * indep/free parameter tests
-                * tests total length of parameters
-                * tests that we have all the free parameters
-                * tests that free parameters are mapped correctly
-                * tests that we have the correct indep paramaters
-                * tests that we have the correct indep parameter
-            * test that sigma is what we passed in
-            * test that samples is what we passed in
-            * tests that x, noise, and y are all the same length (samples)
+                + total length of parameters
+                + that we have all the free parameters
+                + that free parameters are mapped correctly
+                + that we have the correct indep paramaters
+                + that we have the correct indep parameter
+            * that sigma is what we passed in
+            * that samples is what we passed in
+            * that x, noise, and y are all the same length (samples)
         """
 
         sigma = 10
@@ -132,5 +144,7 @@ class TestDataMethods(unittest.TestCase):
         # x, y, and noise length test
         self.assertTrue(len(f.x) == len(f.noise) == len(f.y) == samples)
 
+
 if __name__ == '__main__':
     unittest.main()
+

@@ -74,4 +74,3 @@ class parameterFile():
                     parameters.ti_decayLength(ZERO))
 
         return parameterList
-

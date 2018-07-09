@@ -12,7 +12,7 @@ cv    shot      index
 cv     rho = r**K (->K)      number of grid points      dr_0       dr_1
              6.0                     135                2.0         .1
 
-cv      max. iterations at fixed time  stop iteration if change below(%)    
+cv      max. iterations at fixed time  stop iteration if change below(%)
                2000                         -1.		                           
 
                   S T A R T   C O N D I T I O N S
@@ -27,7 +27,7 @@ cv    save all cycles = 1, save final and start distribution = 0
 
                       T I M E S T E P S     
 
-cv    number of changes (start-time+... +stop-time) 
+cv    number of changes (start-time+... +stop-time)
                  9
 
 cv    time    dt at start    increase of dt after cycle     steps per cycle
@@ -48,11 +48,11 @@ cv    time    dt at start    increase of dt after cycle     steps per cycle
 cv     number of impurities
                 1              
 
-cv     element   atomic weight  energy of neutrals(eV)                 
+cv     element   atomic weight  energy of neutrals(eV)
        'Fe'		55.8		15.0                  
     		      S O  U R C E  
    
-cv  r_source-r_lcfs(cm)  constant rate(1/s)   time dependent rate from file(1/0)      
+cv  r_source-r_lcfs(cm)  constant rate(1/s)   time dependent rate from file(1/0)
  	  0.0		    2.0e22			   1
 
 cv    divertor puff   source_width_in(cm)    source_width_out(cm)  prompt redep
@@ -62,14 +62,14 @@ cv    divertor puff   source_width_in(cm)    source_width_out(cm)  prompt redep
 cv    decay length of impurity outside last grid point(cm)
                           -1.0 
 			  
-cv    Rec.:ON=1/OFF=0   wall-rec.  Tau-div->SOL(ms)   Tau-pump(ms) 
+cv    Rec.:ON=1/OFF=0   wall-rec.  Tau-div->SOL(ms)   Tau-pump(ms)
            0              1.            1.e9             1.
  	    
             
           E N D    I M P U R I T Y   E L E M E N T S  
           
                                               Connection lengths [m]      Mach #
-cv    r_bound-r_lcfs (cm)  r_lim-r_lcfs(cm)   to divertor   to limiter    SOL Flow         
+cv    r_bound-r_lcfs (cm)  r_lim-r_lcfs(cm)   to divertor   to limiter    SOL Flow
           15.0 	               8.0                30.           0.8        0.25
 
 cv   additional sheath voltage [V]
@@ -91,16 +91,16 @@ cv  <0 =figure out, but dont use   3= all stages   contrib   rho_pol   rho_pol  
                 
                    A N O M A L O U S     T R A N S P O R T 
  
-cv    # of changes for transport 
+cv    # of changes for transport
                    1
  
-cv    time-vector  
+cv    time-vector
          0.0000             
  
-cv      Diffusion  [m^2/s]
+cv      Diffusion [m^2/s]
         'interp'
 
-cv   	# of interpolation points  
+cv   	# of interpolation points
            2
 
 cv	rho polodial grid for interpolation
@@ -112,7 +112,7 @@ cv#	D[m^2/s]
 cv    Drift function       Drift Parameter/Velocity
         'interp'		'velocity'
 
-cv   	# of interpolation points  
+cv   	# of interpolation points
            2
 
 cv	rho polodial grid for interpolation
@@ -121,9 +121,8 @@ cv	rho polodial grid for interpolation
 cv#	v[m/s]
           0.5     0.5
 
-cv    # of sawteeth     inversion radius 
+cv    # of sawteeth     inversion radius
             0                 25.        
  
-cv    times of sawteeth 
+cv    times of sawteeth
 	    1.5
-

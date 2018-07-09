@@ -5,7 +5,7 @@ import numpy as np
 class parameterFile():
 
     def __init__(self, name, fname, priority, params):
-        self.name = name
+        self.type = name
         self.fn = fname
         self.priority = priority
         self.params = params

@@ -1,7 +1,12 @@
 from parameterFile import parameterFile
-import subprocess
+import subprocess as sub
 import os
 import re
+import sys
+import pickle as rick
+import auxillary as aux
+import shutil as shell
+
 
 class FileEditor():
 
@@ -12,7 +17,7 @@ class FileEditor():
 
         if not os.path.isdir("./_backup"):
             mkdirBckupCmd = "mkdir ./_backup"
-            subprocess.call(mkdirBckupCmd.split())
+            sub.call(mkdirBckupCmd.split())
 
     def openFile(self, read_write_attribute="r+", buffer_time=1):
 
@@ -126,7 +131,7 @@ class FileEditor():
         if deletion is empty:
             delLineCmd = ("sed -l -i.bck_up{} {}d {}"
                 .format(self._deletions, self._line + 1, self.fileName))
-            subprocess.call(delLineCmd.split())
+            sub.call(delLineCmd.split())
             self.update()
         elif deletion is not empty:  # delete the deletion
             if line is 0:
@@ -135,7 +140,7 @@ class FileEditor():
                 .format(self._deletions, line, deletion,
                         replacement, repeat, self.fileName))
             print(delPhraseCmd + "\n")
-            subprocess.run(delPhraseCmd.split())
+            sub.run(delPhraseCmd.split())
             self.update()
         else:
             print("Broke af")
@@ -143,11 +148,11 @@ class FileEditor():
         if backup:
             mvBckupCmd = ("mv {}.bck_up{} ./_backup"
                 .format(self.fileName, self._deletions))
-            subprocess.call(mvBckupCmd.split())
+            sub.call(mvBckupCmd.split())
         else:
             delBckupCmdn = (("rm {}.bck_up{}")
                 .format(self.fileName, self._deletions))
-            subprocess.call(delBckupCmdn.split())
+            sub.call(delBckupCmdn.split())
 
     def closeFile(self, clean=1):
         """
@@ -156,7 +161,7 @@ class FileEditor():
         """
         if clean:
             cleanBckupDir = "rm ./_backup/{}.bck_up*".format(self.fileName)
-            subprocess.call(cleanBckupDir.split())
+            sub.call(cleanBckupDir.split())
         self.file.close()
 
 
@@ -167,9 +172,8 @@ class paramFileEditor(FileEditor):
     Needs to deal with comments and stuff
     """
 
-    def __init__(self, paramFile):
-        super().__init__(paramFile.fn)
-        self.paramFile = paramFile
+    def __init__(self, paramFileName):
+        super().__init__(paramFileName)
         self.openFile()
 
     def next(self, regex):
@@ -179,60 +183,287 @@ class paramFileEditor(FileEditor):
         while self.peakLines() != '':
             line = self.peakLines()
             if re.match(regex, line) is not None:
-                return 1
+                return True
                 break
             else:
                 self.readLines()
-                return -1
+                return False
 
-    def next_cv(self):
-        """
-        Moves to the next 'cv ' in the given file.
-        """
-        return self.next('(cv\\s*)')
+        return None
 
-    def next_cvPound(self):
-        """
-        Moves to the next 'cv#' in the given file
-        """
-        return self.next("(cv#)")
-
-    def extractParameters(self, line):
+    def extractParameters(self, line, regex):
         """
         Given a parameter header input, this extracts the parameters
         """
-        # Move to the first non-space character after the 'cv '
-        splitTemp = re.split("cv#\\s*", line)
-        print(splitTemp)
+        splitTemp = re.split(regex, line)
+
         temp = ""
         if len(splitTemp) == 2:
             temp = splitTemp[1][0:-1]  # Remove the newline character
-            print(temp)
+            # print("2. temp: {}".format(temp))
         else:
+            print("The parameter header was not split correclty.")
             return -1
-        params = re.split("\\s{2,}", temp)
 
+        paramsSet = set(re.split("\\s{2,}", temp))
 
+        return paramsSet
 
-    def comment(self):
+    def next_noncomment(self):
         """
-        If something is commented in the parameter files, then
-        it should be immediately added to the input file
+        Moves to the next 'cv ' or 'cv#' in the given file.
         """
+        return self.next("(cv\\s){1}")
+
+    def next_comment(self):
+        """
+        Moves to the next 'cv ' or 'cv#' in the given file.
+        """
+        return self.next("(cv#)")
+
+    def extractNoncommentedParameters(self, line):
+        """
+        Given a parameter header input, this extracts the
+        uncommented parameters
+        """
+        return self.extractParameters(line, "cv\\s*")
+
+    def extractCommentedParameters(self, line):
+        """
+        Given a parameter header input, this extracts the
+        commented parameters
+        """
+        return self.extractParameters(line, "cv#\\s*")
+
+    # def comment(self):
+    #     """
+    #     If something is commented in the parameter files, then
+    #     it should be immediately added to the input file
+    #     """
+    #     pass
+
+    # def uncomment(self):
+    #     """
+    #     If something is uncommented in the parameter files, then
+    #     it should be immediately removed from the input file
+    #     """
+    #     pass
+
+
+class inputFileEditor(FileEditor):
+    """
+    TODO: Port to pysqllite? json?
+    """
+
+    def __init__(self, inpt_fn, sum_fn, parameterFiles):
+        # if fn DNE, create fn + sum
+        # if not os.path.isfile(fn):
+
+        #     print("Error: {} was not found in ~/{}\n" +
+        #         " This is the current directory.\n"
+        #         .format(aux.colorFile(fn), aux.colorDir(os.curdir)))
+
+        #     aux.print_dirContents(os.curdir)
+
+        #     fn = input("Please enter a different input file, " +
+        #             "create a new input file, " +
+        #             "or exit [enter]: ")
+
+        #     if fn is '':
+        #         print("Exiting program")
+        #         sys.exit()
+        #     else:
+        #         if not os.path.isfile(fn):
+        #             mkfile = "touch {}".format(fn)
+        #             sub.call(mkfile.split())
+        #         self.__init__(fn)
+
+        self.inpt_fn = inpt_fn
+        self.sum_fn = sum_fn
+        self.parameterFiles = parameterFiles
+
+    def create_inptFile(inpt_fn=None):
+
+        if inpt_fn is None:
+            inpt_fn = input("What would you like to call your input file? ")
+
+        mkfile = "touch {}".format(inpt_fn)
+        sub.call(mkfile.split())
+
+        return inpt_fn
+
+    def create_sumFile(sum_fn=None):
+        if sum_fn is None:
+            sum_fn = input("Your summary file will be given " +
+                    "a file extension and be put into the directory {}".
+                    format(aux.colorDir("./summaries")) +
+                    "What would you like to call your summary file? ")
+
+        sum_fn = sum_fn + ".pckl"
+        mkfile = "touch ./summaries/{}".format(sum_fn)
+        sub.call(mkfile.split())
+
+        return sum_fn
+
+    def load_sumFile(sum_fn=None):
+        """
+        If the file has a .pckl then, just entering the name will work
+        unless there exist a file with the same name. So if you intend
+        to give the load function a file without a .pckl ending, just
+        type that file name and it will still work.
+        """
+        sum_dir = os.path.join(os.curdir, "summaries")
+
+        if sum_fn is not None:
+            if not re.match(".*.pckl", sum_fn):
+                sum_fn = sum_fn + ".pckl"
+
+            sum_path = os.path.join(sum_dir, sum_fn)
+
+        if sum_fn is None or not os.path.isfile(sum_path):
+
+                print("Error: {} was not found in {}\n"
+                    .format(aux.colorFile(sum_fn),
+                        aux.colorDir(sum_dir)) +
+                    "This is the {} directory.\n"
+                    .format(aux.colorDir(sum_dir)))
+
+                aux.print_dirContents(sum_dir)
+
+                newSum_fn = input("Please enter a different summary file, " +
+                        "or exit [enter]: ")
+                newSum_path = os.path.join(sum_dir, newSum_fn)
+
+                print("New Summary file is {}:".format(newSum_fn))
+                print("New Summary path is {}:".format(newSum_path))
+
+                # TODO: Add a literal option
+                if newSum_fn is "":  # [check]
+                    print("Exiting program")
+                    sys.exit()
+
+                if not os.path.isfile(newSum_path):
+                    newSum_fn = inputFileEditor.load_sumFile(newSum_fn)
+
+                sum_fn = newSum_fn
+
+                # print("Using {} as summary file".
+                # format(aux.colorPckl(sum_fn)))
+
+        return sum_fn
+
+    @classmethod
+    def load(cls, inpt_fn=None, *parameterFiles):
+        if inpt_fn is not None and os.path.isfile(inpt_fn):
+            print("{} is an input file found in {}"
+                .format(aux.colorFile(inpt_fn), aux.colorDir(os.curdir)))
+
+            new = input("Would you like to overwrite {}, "
+                        .format(aux.colorFile(inpt_fn)) +
+                        "load it into a new file, or exit [Y/N/Enter]? ")
+
+            if re.match("(y|Y)", new):  # [check]
+                sum_fn = cls.load_sumFile(inpt_fn)
+
+            elif re.match("(n|N)", new):  # [todo]
+                sum_fn = os.path.join("summaries",
+                            inputFileEditor.load_sumFile(inpt_fn))
+
+                newInpt_fn = inputFileEditor.create_inptFile()
+                newSum_fn = os.path.join("summaries",
+                            inputFileEditor.create_sumFile(inpt_fn))
+
+                shell.copyfile(inpt_fn, newInpt_fn)
+                shell.copyfile(sum_fn, newSum_fn)
+
+            elif new is "":  # [check]
+                print("Exiting Program")
+                sys.exit()
+
+            else:  # [check]
+                print("Error: incorrect answer given...trying again.\n\n")
+                cls.load(inpt_fn)
+
+        else:  # [check]
+            print("Error: {} was not found in {}\n"
+                .format(aux.colorFile(inpt_fn),
+                    aux.colorDir("~/" + os.curdir)) +
+                "This is the current directory.\n")
+
+            aux.print_dirContents(os.curdir)
+
+            inpt_fn = input("Please enter a different input file, " +
+                    "create a new input file [new file name], " +
+                    "or exit [enter]: ")
+
+            if inpt_fn is '':  # [check]
+                print("Exiting program")
+                sys.exit()
+
+            else:
+                if not os.path.isfile(inpt_fn):  # [check]
+                    inpt_fn = inputFileEditor.create_inptFile(inpt_fn)
+                    sum_fn = inputFileEditor.create_sumFile(inpt_fn)
+                    print("Creating {} and {} as input and summary files"
+                        .format(aux.colorFile(inpt_fn),
+                            aux.colorPckl(sum_fn)))
+
+                else:  # [check]
+                    cls.load(inpt_fn)
+
+        return cls(inpt_fn, sum_fn)
+
+    def create_summary(self, summary_file):
+        return open(summary_file, "wb")  # Open with write binary
+
+    def close_summary(self, summary):
+        summary.close()
+
+    def load_summary(self, sum_fn):
+        """
+        This is self contained as does not require create_summary or
+        close_summary methods.
+        In order to get the previous information.
+        returns the unpickled object
+        """
+        load_obj = None
+
+        with open(sum_fn, "rb") as summary:  # Open with read binary
+            load_obj = rick.load(summary)
+
+        return load_obj
+
+    def summarize(self, obj, summary_file=None):
+        """
+        Summarizes the object into the summary_file.
+        If this is not given, then uses self.sum_fn
+        """
+
+
+    def update_summary(self, new_obj, summary_file=None, summary=None):
+        """
+        Can either write new_obj to a summary obj which is already open
+        or to a summary_file to overwrite it.
+        """
+        if summary_file is None and summary is None:
+            print("Either summary_file and summary must be passed.")
+            raise TypeError
+            return -1
+
+        if summary_file is not None:
+            with open(summary_file, "wb") as summary:
+                rick.dump(new_obj, summary, rick.HIGHEST_PROTOCOL)
+
+        elif summary is not None:
+            rick.dump(new_obj, summary, rick.HIGHEST_PROTOCOL)
+
+    @staticmethod
+    def basic_write(self):
         pass
 
-    def uncomment(self):
-        """
-        If something is uncommented in the parameter files, then
-        it should be immediately removed from the input file
-        """
+    @staticmethod
+    def blankLines(self):
         pass
-
-
-class inputFileEditor():
-    """
-    """
-    pass
 
 
 class quickFileEditor(FileEditor):

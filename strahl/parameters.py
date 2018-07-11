@@ -10,6 +10,12 @@ class parameters():
         self.size = value.size
         self.state = False
 
+    def attributes(self):
+        print("Attributes of parameter object {}".format(self))
+        print(("Name: {}\nPriority: {}\nValue: {}\nShape: {}\nSize: {}\nState: {}\n")
+            .format(self.name, self.priority, self.value, self.shape,
+                self.size, self.state))
+
     def newValue(self, newValue):
         self.value = newValue
         self.shape = newValue.shape
@@ -32,6 +38,14 @@ class parameters():
     @classmethod
     def charge(cls, value):
         return cls("charge", 2, value)
+
+    @classmethod
+    def shot(cls, value):
+        return cls("shot", 3, value)
+
+    @classmethod
+    def index(cls, value):
+        return cls("index", 4, value)
 
 # Background Input Parameters
     @classmethod

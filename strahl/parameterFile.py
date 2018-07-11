@@ -8,11 +8,19 @@ class parameterFile():
         self.type = name
         self.fn = fname
         self.priority = priority
-        self.params = params
+        self.paramDict = params
         self.size = len(params)
 
+    def attributes(self, all=False):
+        print("Attributes of paramFile object {}".format(self))
+        print("type: {}\nfile name: {}\npriority: {}\nparams: {}\nsize: {}\n"
+            .format(self.type, self.fn, self.priority, self.paramDict, self.size))
+
+        if all:
+            [param.attributes() for param in self.paramDict.values()]
+
     def resetStates(self):
-        for param in self.params:
+        for param in self.paramDict.values():
             param.changeState(False)
 
     @classmethod
@@ -39,8 +47,10 @@ class parameterFile():
     def emptyMain():
         ZERO = np.array([0], dtype=np.float)
 
-        parameterList = (parameters.atomic_weight(ZERO),
-            parameters.charge(ZERO))
+        parameterList = {"atomic weight": parameters.atomic_weight(ZERO),
+                        "charge": parameters.charge(ZERO),
+                        "shot": parameters.shot(ZERO),
+                        "index": parameters.index(ZERO)}
 
         return parameterList
 

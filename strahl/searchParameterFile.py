@@ -1,6 +1,11 @@
 # Searches parameter file to change parameter states as requested
 from loadParamFiles import loadParamFiles
-from editor import paramFileEditor
+from editor import parameterFileEditor
+
+
+def searchParameterFiles(paramFiles, searchParam="comments"):
+    for file in paramFiles:
+        searchParameterFile(file, searchParam)
 
 
 def searchParameterFile(paramFile, searchParam="comments"):
@@ -13,7 +18,7 @@ def searchParameterFile(paramFile, searchParam="comments"):
     any future implementation in which we would like to turn these
     on and off interactively.
     """
-    editor = paramFileEditor(paramFile.fn)
+    editor = parameterFileEditor(paramFile.fn)
 
     keywords = set()
     while keywords is not None:
@@ -27,7 +32,6 @@ def searchParameterFile(paramFile, searchParam="comments"):
             keywords = searchParameterFileComments(editor)
 
         if keywords is not None and len(keywords) != 0:
-
             changeRelevantParameters(paramFile, keywords)
 
 

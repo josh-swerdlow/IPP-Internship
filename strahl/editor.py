@@ -1,11 +1,14 @@
-from parameterFile import parameterFile
+from auxillary import generateDictionary
+from file import inputFile
+from file import summaryFile
+
 import subprocess as sub
-import os
-import re
+import numpy as np
+
+import json
 import sys
-import pickle as rick
-import auxillary as aux
-import shutil as shell
+import re
+import os
 
 
 class FileEditor():
@@ -15,13 +18,13 @@ class FileEditor():
         self._deletions = 0
         self._line = 0
 
-        if not os.path.isdir("./_backup"):
-            mkdirBckupCmd = "mkdir ./_backup"
-            sub.call(mkdirBckupCmd.split())
+        # if not os.path.isdir("./_backup"):
+        #     mkdirBckupCmd = "mkdir ./_backup"
+        #     sub.call(mkdirBckupCmd.split())
 
     def openFile(self, read_write_attribute="r+", buffer_time=1):
 
-        self.file = open(self.fileName, read_write_attribute, buffer_time)
+        self.file = open(self.fileName, read_write_attribute)
 
     def readChar(self, n=1):
         """
@@ -112,14 +115,20 @@ class FileEditor():
 
     def add(self, addition):
         if self.file.writable():
-            self.file.write(addition)
-            self._line += addition.count("")
+            if isinstance(addition, np.ndarray):
+                addition.tofile(self.file, sep=" ", format="%.1f")
+                self.file.write("\n")
+
+                self._line += 1
+            else:
+                self.file.write(addition)
+                self._line += addition.count("\n")
 
         else:
             print("File is not writable.")
             raise OSError
 
-    def delete(self, deletion="", replacement="", line=0, repeat=1, backup=False):
+    def delete(self, deletion="", replacement="", line=0, repeat=1):
         """
         Deletes the given deletion phrase or by default
         a single line. The previous file is always saved
@@ -127,34 +136,48 @@ class FileEditor():
         """
         empty = ""
         self._deletions += 1
-
         if deletion is empty:
+            print(self.curLoc())
+            # print("Deleting: " + self.peakLines())
             delLineCmd = ("sed -l -i.bck_up{} {}d {}"
                 .format(self._deletions, self._line + 1, self.fileName))
+
+            print(delLineCmd + "\n")
             sub.call(delLineCmd.split())
-            self.update()
+
+            loc = self.curLoc()
+
         elif deletion is not empty:  # delete the deletion
             if line is 0:
                 line = self._line + 1
+
             delPhraseCmd = ("sed -l -i.bck_up{} {}s/{}/{}/{} {}"
                 .format(self._deletions, line, deletion,
                         replacement, repeat, self.fileName))
+
             print(delPhraseCmd + "\n")
+
             sub.run(delPhraseCmd.split())
-            self.update()
+
+            loc = self.curLoc()
+
         else:
             print("Broke af")
 
-        if backup:
-            mvBckupCmd = ("mv {}.bck_up{} ./_backup"
-                .format(self.fileName, self._deletions))
-            sub.call(mvBckupCmd.split())
-        else:
-            delBckupCmdn = (("rm {}.bck_up{}")
-                .format(self.fileName, self._deletions))
-            sub.call(delBckupCmdn.split())
+        self.file.close()
+        self.openFile()
+        self.move(loc)
 
-    def closeFile(self, clean=1):
+        # if backup:
+        #     mvBckupCmd = ("mv {}.bck_up{} ./_backup"
+        #         .format(self.fileName, self._deletions))
+        #     sub.call(mvBckupCmd.split())
+        # else:
+        #     delBckupCmdn = (("rm {}.bck_up{}")
+        #         .format(self.fileName, self._deletions))
+        #     sub.call(delBckupCmdn.split())
+
+    def closeFile(self, clean=True):
         """
         Closes the file and by default deletes the
         backups for this file in the folder ./_backup
@@ -165,7 +188,7 @@ class FileEditor():
         self.file.close()
 
 
-class paramFileEditor(FileEditor):
+class parameterFileEditor(FileEditor):
     """
     A class that handles general editing of parameter files.
     It is built on top of the FileEditor() class.
@@ -250,259 +273,136 @@ class paramFileEditor(FileEditor):
     #     pass
 
 
-class inputFileEditor(FileEditor):
-    """
-    TODO: Port to pysqllite? json?
-    """
+class summaryFileEditor(summaryFile):  # [todo]
 
-    def __init__(self, inpt_fn, sum_fn, parameterFiles):
-        # if fn DNE, create fn + sum
-        # if not os.path.isfile(fn):
+    def __init__(self, sum_fn):
+        super().__init__(sum_fn)
+        self.loadable = False
 
-        #     print("Error: {} was not found in ~/{}\n" +
-        #         " This is the current directory.\n"
-        #         .format(aux.colorFile(fn), aux.colorDir(os.curdir)))
-
-        #     aux.print_dirContents(os.curdir)
-
-        #     fn = input("Please enter a different input file, " +
-        #             "create a new input file, " +
-        #             "or exit [enter]: ")
-
-        #     if fn is '':
-        #         print("Exiting program")
-        #         sys.exit()
-        #     else:
-        #         if not os.path.isfile(fn):
-        #             mkfile = "touch {}".format(fn)
-        #             sub.call(mkfile.split())
-        #         self.__init__(fn)
-
-        self.inpt_fn = inpt_fn
-        self.sum_fn = sum_fn
-        self.parameterFiles = parameterFiles
-
-    def create_inptFile(inpt_fn=None):
-
-        if inpt_fn is None:
-            inpt_fn = input("What would you like to call your input file? ")
-
-        mkfile = "touch {}".format(inpt_fn)
-        sub.call(mkfile.split())
-
-        return inpt_fn
-
-    def create_sumFile(sum_fn=None):
-        if sum_fn is None:
-            sum_fn = input("Your summary file will be given " +
-                    "a file extension and be put into the directory {}".
-                    format(aux.colorDir("./summaries")) +
-                    "What would you like to call your summary file? ")
-
-        sum_fn = sum_fn + ".pckl"
-        mkfile = "touch ./summaries/{}".format(sum_fn)
-        sub.call(mkfile.split())
-
-        return sum_fn
-
-    def load_sumFile(sum_fn=None):
+    def get(self):
         """
-        If the file has a .pckl then, just entering the name will work
-        unless there exist a file with the same name. So if you intend
-        to give the load function a file without a .pckl ending, just
-        type that file name and it will still work.
+        Gets the summary file
         """
-        sum_dir = os.path.join(os.curdir, "summaries")
+        obj = None
 
-        if sum_fn is not None:
-            if not re.match(".*.pckl", sum_fn):
-                sum_fn = sum_fn + ".pckl"
+        path_to_file = os.path.join(self.path, self.fn)
 
-            sum_path = os.path.join(sum_dir, sum_fn)
+        if self.serial == "json":
+            obj = self._getJSON(path_to_file)
 
-        if sum_fn is None or not os.path.isfile(sum_path):
+        elif self.serial == "hdf5":
+            obj = self._getHDF5(path_to_file)
 
-                print("Error: {} was not found in {}\n"
-                    .format(aux.colorFile(sum_fn),
-                        aux.colorDir(sum_dir)) +
-                    "This is the {} directory.\n"
-                    .format(aux.colorDir(sum_dir)))
-
-                aux.print_dirContents(sum_dir)
-
-                newSum_fn = input("Please enter a different summary file, " +
-                        "or exit [enter]: ")
-                newSum_path = os.path.join(sum_dir, newSum_fn)
-
-                print("New Summary file is {}:".format(newSum_fn))
-                print("New Summary path is {}:".format(newSum_path))
-
-                # TODO: Add a literal option
-                if newSum_fn is "":  # [check]
-                    print("Exiting program")
-                    sys.exit()
-
-                if not os.path.isfile(newSum_path):
-                    newSum_fn = inputFileEditor.load_sumFile(newSum_fn)
-
-                sum_fn = newSum_fn
-
-                # print("Using {} as summary file".
-                # format(aux.colorPckl(sum_fn)))
-
-        return sum_fn
-
-    @classmethod
-    def load(cls, inpt_fn=None, *parameterFiles):
-        if inpt_fn is not None and os.path.isfile(inpt_fn):
-            print("{} is an input file found in {}"
-                .format(aux.colorFile(inpt_fn), aux.colorDir(os.curdir)))
-
-            new = input("Would you like to overwrite {}, "
-                        .format(aux.colorFile(inpt_fn)) +
-                        "load it into a new file, or exit [Y/N/Enter]? ")
-
-            if re.match("(y|Y)", new):  # [check]
-                sum_fn = cls.load_sumFile(inpt_fn)
-
-            elif re.match("(n|N)", new):  # [todo]
-                sum_fn = os.path.join("summaries",
-                            inputFileEditor.load_sumFile(inpt_fn))
-
-                newInpt_fn = inputFileEditor.create_inptFile()
-                newSum_fn = os.path.join("summaries",
-                            inputFileEditor.create_sumFile(inpt_fn))
-
-                shell.copyfile(inpt_fn, newInpt_fn)
-                shell.copyfile(sum_fn, newSum_fn)
-
-            elif new is "":  # [check]
-                print("Exiting Program")
-                sys.exit()
-
-            else:  # [check]
-                print("Error: incorrect answer given...trying again.\n\n")
-                cls.load(inpt_fn)
-
-        else:  # [check]
-            print("Error: {} was not found in {}\n"
-                .format(aux.colorFile(inpt_fn),
-                    aux.colorDir("~/" + os.curdir)) +
-                "This is the current directory.\n")
-
-            aux.print_dirContents(os.curdir)
-
-            inpt_fn = input("Please enter a different input file, " +
-                    "create a new input file [new file name], " +
-                    "or exit [enter]: ")
-
-            if inpt_fn is '':  # [check]
-                print("Exiting program")
-                sys.exit()
-
-            else:
-                if not os.path.isfile(inpt_fn):  # [check]
-                    inpt_fn = inputFileEditor.create_inptFile(inpt_fn)
-                    sum_fn = inputFileEditor.create_sumFile(inpt_fn)
-                    print("Creating {} and {} as input and summary files"
-                        .format(aux.colorFile(inpt_fn),
-                            aux.colorPckl(sum_fn)))
-
-                else:  # [check]
-                    cls.load(inpt_fn)
-
-        return cls(inpt_fn, sum_fn)
-
-    def create_summary(self, summary_file):
-        return open(summary_file, "wb")  # Open with write binary
-
-    def close_summary(self, summary):
-        summary.close()
-
-    def load_summary(self, sum_fn):
-        """
-        This is self contained as does not require create_summary or
-        close_summary methods.
-        In order to get the previous information.
-        returns the unpickled object
-        """
-        load_obj = None
-
-        with open(sum_fn, "rb") as summary:  # Open with read binary
-            load_obj = rick.load(summary)
-
-        return load_obj
-
-    def summarize(self, obj, summary_file=None):
-        """
-        Summarizes the object into the summary_file.
-        If this is not given, then uses self.sum_fn
-        """
-
-
-    def update_summary(self, new_obj, summary_file=None, summary=None):
-        """
-        Can either write new_obj to a summary obj which is already open
-        or to a summary_file to overwrite it.
-        """
-        if summary_file is None and summary is None:
-            print("Either summary_file and summary must be passed.")
-            raise TypeError
-            return -1
-
-        if summary_file is not None:
-            with open(summary_file, "wb") as summary:
-                rick.dump(new_obj, summary, rick.HIGHEST_PROTOCOL)
-
-        elif summary is not None:
-            rick.dump(new_obj, summary, rick.HIGHEST_PROTOCOL)
-
-    @staticmethod
-    def basic_write(self):
-        pass
-
-    @staticmethod
-    def blankLines(self):
-        pass
-
-
-class quickFileEditor(FileEditor):
-
-    def __init__(self, paramFile, inputFile=None):
-
-        self.main = parameterFile.mainFile()
-        self.background = parameterFile.backgroundFile()
-        self.geometry = parameterFile.geometryFile()
-        self.flux = parameterFile.fluxFile()
-
-        self.total_parameters = (self.main.size + self.background.size +
-                            self.geometry.size + self.flux.size)
-
-        self.paramFile = open(paramFile, "w+", 1)
-
-        # beware that the number of line in a premade input file
-        # and a new set of parameterFiles could cause hierarchy
-        # problems
-        if inputFile is None:
-            inputFile = self.temp_file(self.total_parameters)
         else:
-            inputFile = open(inputFile, "w+", 1)
-        self.inputFile = inputFile
+            print("Incorrect serial value: {}".format(self.serial))
+
+        return obj
+
+    def write(self, dic):
+        """
+        Writes the input file into a summary file
+        """
+        path_to_file = os.path.join(self.path, self.fn)
+
+        if self.serial == "json":
+            self._writeJSON(dic, path_to_file)
+
+        elif self.serial == "hdf5":
+            self._writeHDF5(dic, path_to_file)
+
+        print("Writing {} to {}".format(dic, path_to_file))
+
+        self.loadable = True
 
     @staticmethod
-    def temp_file(total_parameters):
+    def _getJSON(fn):
+        obj = None
 
-        tmp = open("temp", 'w+', 1)
+        with open(fn, "r") as f:
+            obj = json.load(f)
 
-        tmp.write("Main File Name\n")
-        tmp.write("0.00\n")
+        return obj
 
-        for params in range(0, total_parameters):
-            tmp.write("\n")
+    @staticmethod
+    def _writeJSON(dic, fn):
+        with open(fn, "w") as f:
+            json.dump(dic, f, indent=4)
 
-        tmp.write("E\n")
+    @staticmethod
+    def _getHDF5(obj):
+        pass
 
-        return tmp
+    @staticmethod
+    def _writeHDF5(obj):
+        pass
 
 
+class inputFileEditor(inputFile):  # [check]
+
+    def __init__(self, inpt_fn=None, inputs=None):  # [check]
+        super().__init__(inpt_fn, inputs)
+
+    def add(self, element=None, index=None):  # [check]
+        """
+        Adds a value (if given) to the input file
+        if it is not given, then the user is asked to
+        input a value
+        """
+        if element is None:
+            print("The follow request will be evaluated like python code!\n" +
+                  "As such, don't forget to put \"\" around strings.\n" +
+                  "In addition, the numpy (np) module can be used.")
+            element = input("Please input a value: ")
+            element = eval(element,
+                          {'__builtins__': None, "np": np},
+                          {'__builtins__': None}
+                           )
+        if index is None:
+            self.inputs.append(element)
+
+        elif index > len(self.inputs) - 1:
+            print("Index ({}) out of range, appending {} to the end."
+                  .format(index, element))
+            self.inputs.append(element)
+
+        else:
+            self.inputs.insert(index, element)
+
+    def delete(self, element=None):  # [check]
+        """
+        Deletes the element given and if the element is
+        not given, then remove the last value
+        """
+        if element is not None:
+            return self.inputs.remove(element)
+
+        else:
+            return self.inputs.pop()
+
+    def write(self):  # [check]
+        with open(self.fn, "r+") as f:
+            f.write("header\n")
+            f.write("time to stop\n")
+
+            for inpt in self.inputs:
+                if isinstance(inpt, (int, float)):
+                    inpt = "{:.4f}".format(inpt)
+
+                elif isinstance(inpt, (list, np.ndarray)):
+                    empty = ""
+
+                    for inp in inpt:
+                        empty = empty + "{:.4f} ".format(inp)
+
+                    inpt = empty
+
+                elif isinstance(inpt, str):
+                    inpt = inpt.strip("\n").join("''")
+
+                if inpt[-1] is not "\n":
+                    inpt = inpt + "\n"
+
+                f.writelines(inpt)
+
+            f.write("\\E")
 

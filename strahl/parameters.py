@@ -1,3 +1,5 @@
+import numpy
+
 
 class parameters():
     """docstring for inputParameter"""
@@ -6,31 +8,44 @@ class parameters():
         self.name = name
         self.priority = priority
         self.value = value
-        self.shape = value.shape
-        self.size = value.size
         self.state = False
 
     def attributes(self):
         print("Attributes of parameter object {}".format(self))
-        print(("Name: {}\nPriority: {}\nValue: {}\nShape: {}\nSize: {}\nState: {}\n")
-            .format(self.name, self.priority, self.value, self.shape,
-                self.size, self.state))
+        print(("Name: {}\nPriority: {}\nValue: {}\nState: {}\n")
+            .format(self.name, self.priority, self.value, self.state))
+
+    def attribute_dictionary(self, keys=None):
+        attributes = dict()
+
+        if keys is None:
+            keys = self.__dict__.keys()
+
+        for key in keys:
+            val = self.__dict__[key]
+
+            if isinstance(val, numpy.ndarray):
+                val = val.tolist()
+
+            attributes[key] = val
+
+        return attributes
 
     def newValue(self, newValue):
         self.value = newValue
-        self.shape = newValue.shape
-        self.size = newValue.size
 
     def changeState(self, state=None):
         if state is None:
             state = not self.state
+
         if isinstance(state, bool):
             self.state = state
+
         else:
             print('state must be a boolean variable')
             raise TypeError
 
-# Main Input Parameters -- at the moment this is limited
+    # Main Input Parameters -- at the moment this is limited
     @classmethod
     def atomic_weight(cls, value):
         return cls("atomic_weight", 1, value)
@@ -47,7 +62,7 @@ class parameters():
     def index(cls, value):
         return cls("index", 4, value)
 
-# Background Input Parameters
+    # Background Input Parameters
     @classmethod
     def ne_numTimePts(cls, value):
         return cls("ne_numTimePts", 1, value)
@@ -144,7 +159,7 @@ class parameters():
     def ti_decayLength(cls, value):
         return cls("ti_decayLength", 24, value)
 
-# Geometry Input Parameters
+    # Geometry Input Parameters
 
-# Flux Input Parameters
+    # Flux Input Parameters
 

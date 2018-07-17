@@ -1,9 +1,10 @@
 # This will load the parameter files to be worked with
 # In future iterations this will be more interactive
-from parameterFile import parameterFile
+from file import parameterFile
+
+import auxillary as aux
 
 import os
-import auxillary as aux
 
 
 def loadParamFiles(mainFileName, bckgrndFileName, geomFileName, fluxFileName):
@@ -23,7 +24,6 @@ def loadParamFiles(mainFileName, bckgrndFileName, geomFileName, fluxFileName):
 
 
 def loadParamFile(fileName, filePath, fileType):
-
     paramFilePath = os.path.join(filePath, fileName)
 
     paramFile = None
@@ -36,14 +36,17 @@ def loadParamFile(fileName, filePath, fileType):
             pass
         elif fileType is "flux":
             pass
+
     else:
         file = aux.colorFile(fileName)
         path = aux.colorDir(filePath)
+
         print("Could not find {} in {}!\n".format(file, path))
 
         aux.print_dirContents(filePath)
 
         newFileName = input("Please enter a new file or exit [enter]: ")
+
         if newFileName is not '':
             paramFile = loadParamFile(newFileName, filePath, fileType)
 

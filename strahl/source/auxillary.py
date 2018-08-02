@@ -1,10 +1,7 @@
-from parameters import parameters
+from source.parameters import Parameter
 
 import termcolor
 import numpy
-import json
-import h5py
-import sys
 import os
 import re
 
@@ -80,7 +77,7 @@ def generateDictionary(dic):
         if isinstance(val, dict):
             val = generateDictionary(val)
 
-        if isinstance(val, parameters):
+        if isinstance(val, Parameter):
             val = generateDictionary(val.__dict__)
 
         if isinstance(val, numpy.ndarray):

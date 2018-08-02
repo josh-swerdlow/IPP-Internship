@@ -1,37 +1,54 @@
-# This will load the parameter files to be worked with
-# In future iterations this will be more interactive
-from file import parameterFile
+########################################
+# File name: parameters.py             #
+# Author: Joshua Swerdow               #
+# Date created: 5/20/2018              #
+# Date last modified:                  #
+# Python Version: 3.0+                 #
+########################################
 
-import auxillary as aux
+"""
+Summary: This will load the parameter files to be worked with.
+
+Details: Calls the local private function _loadParamFile
+    to load
+
+To Do:
+
+"""
+
+__author__ = 'Joshua Swerdow'
 
 import os
 
+import auxillary as aux
+
+from file import ParameterFile
 
 def loadParamFiles(mainFileName, bckgrndFileName, geomFileName, fluxFileName):
 
     # TODO: Create emptyGeometry and emptyFlux class methods
-    # Created two parameterFile objects with all parameter states
+    # Created two ParameterFile objects with all parameter states
     # initialized to False
     mainPath = "param"
     bckgrndPath = "nete"
     geomPath = bckgrndPath
     fluxPath = bckgrndPath
 
-    main = loadParamFile(mainFileName, mainPath, "main")
-    bckgrnd = loadParamFile(bckgrndFileName, bckgrndPath, "background")
+    main = _loadParamFile(mainFileName, mainPath, "main")
+    bckgrnd = _loadParamFile(bckgrndFileName, bckgrndPath, "background")
 
     return main, bckgrnd
 
 
-def loadParamFile(fileName, filePath, fileType):
+def _loadParamFile(fileName, filePath, fileType):
     paramFilePath = os.path.join(filePath, fileName)
 
     paramFile = None
     if os.path.isfile(paramFilePath):
         if fileType is "main":
-            paramFile = parameterFile.mainFile(paramFilePath)
+            paramFile = ParameterFile.mainFile(paramFilePath)
         elif fileType is "background":
-            paramFile = parameterFile.backgroundFile(paramFilePath)
+            paramFile = ParameterFile.backgroundFile(paramFilePath)
         elif fileType is "geometry":
             pass
         elif fileType is "flux":

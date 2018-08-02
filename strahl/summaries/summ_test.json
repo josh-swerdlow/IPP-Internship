@@ -1,0 +1,130 @@
+{
+    "main": {
+        "fn": "op12a_171122022_FeLBO3_test",
+        "parameter_dict": {
+            "atomic weight": {
+                "name": "atomic weight",
+                "value": 4,
+                "state": true
+            },
+            "charge": {
+                "name": "charge",
+                "value": -1,
+                "state": true
+            },
+            "shot": {
+                "name": "shot",
+                "value": 0,
+                "state": true
+            },
+            "index": {
+                "name": "index",
+                "value": 0,
+                "state": true
+            },
+            "rho": {
+                "name": "rho",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "number of grid points": {
+                "name": "number of grid points",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "dr_0": {
+                "name": "dr_0",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "dr_1": {
+                "name": "dr_1",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "number of changes (start-time+... +stop-time)": {
+                "name": "number of changes (start-time+... +stop-time)",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "time": {
+                "name": "time",
+                "value": [
+                    1,
+                    2,
+                    3,
+                    4
+                ],
+                "state": true
+            },
+            "dt at start": {
+                "name": "dt at start",
+                "value": [
+                    20,
+                    1,
+                    1,
+                    1
+                ],
+                "state": true
+            },
+            "increase of dt after cycle": {
+                "name": "increase of dt after cycle",
+                "value": [
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "state": true
+            },
+            "steps per cycle": {
+                "name": "steps per cycle",
+                "value": [
+                    4,
+                    4,
+                    4,
+                    4
+                ],
+                "state": true
+            },
+            "number of impurities": {
+                "name": "number of impurities",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "element": {
+                "name": "element",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "impure atomic weight": {
+                "name": "impure atomic weight",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "energy of neutrals(eV)": {
+                "name": "energy of neutrals(eV)",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            }
+        }
+    }
+}

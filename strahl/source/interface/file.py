@@ -23,10 +23,10 @@ import re
 import sys
 
 import numpy as np
-import source.auxillary as aux
+import source.interface.auxillary as aux
 import subprocess as sub
 
-from source.parameters import Parameter
+from source.interface.parameters import Parameter
 
 
 class ParameterFile():

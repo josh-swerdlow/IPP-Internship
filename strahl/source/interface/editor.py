@@ -29,9 +29,9 @@ import json
 
 import numpy as np
 import subprocess as sub
-import source.query as query
+import source.interface.query as query
 
-from source.file import ParameterFile, InputFile, SummaryFile
+from source.interface.file import ParameterFile, InputFile, SummaryFile
 
 
 class FileEditor():

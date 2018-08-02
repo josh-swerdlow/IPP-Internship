@@ -18,7 +18,7 @@ __author__ = 'Joshua Swerdow'
 
 import os
 import numpy
-import source.query as query
+import source.interface.query as query
 
 
 class Parameter():

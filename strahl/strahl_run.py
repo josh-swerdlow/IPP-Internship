@@ -1,7 +1,7 @@
 import os
 import sys
 import subprocess as sub
-import source.auxillary as aux
+import source.interface.auxillary as aux
 
 
 def strahl_run(inpt_fns=None, strahl_cmd="./strahl"):

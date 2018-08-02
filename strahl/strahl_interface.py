@@ -22,11 +22,10 @@ import sys
 
 import strahl_run
 import numpy as np
-import source.query as query
-import source.auxillary as aux
+import source.interface.query as query
+import source.interface.auxillary as aux
 
-from source.file import ParameterFile, InputFile, SummaryFile
-from source.editor import ParameterFileEditor, InputFileEditor, SummaryFileEditor
+from source.interface.editor import ParameterFileEditor, InputFileEditor, SummaryFileEditor
 
 
 # TODO:

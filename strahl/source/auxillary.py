@@ -1,4 +1,4 @@
-from source.parameters import Parameter
+from source.interface.parameters import Parameter
 
 import termcolor
 import numpy

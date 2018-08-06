@@ -314,7 +314,7 @@ class ParameterFileEditor(FileEditor, ParameterFile):
         Initializes a ParameterFileEditor object
 
         Parameters:
-            * **param_fn** [str]: The parameter file name.
+            * **parameter_file** [str]: The parameter file name.
             * **verbosity** [bool|False]: turns on and off verbose
                 ouput.
 
@@ -380,7 +380,6 @@ class ParameterFileEditor(FileEditor, ParameterFile):
                 path = os.path.join(directories[index], file_names[index])
 
                 if os.path.isfile(path):
-
                     editor = cls.main_editor(file_names[index],
                                            path,
                                            verbosity)

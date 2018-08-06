@@ -15,6 +15,8 @@ def strahl_run(inpt_fns=None, strahl_cmd="./strahl"):
             be replaced with different tags that are described in the user manual.
 
     """
+    strahl_cmd_file = lambda file: strahl_cmd + "< {}".format(file)
+
     if inpt_fns is None:
         aux.print_dirContents(os.curdir)
 
@@ -38,7 +40,7 @@ def strahl_run(inpt_fns=None, strahl_cmd="./strahl"):
             if inpt_fn is "":
                 sys.exit("Exiting")
 
-        sub.call(strahl_cmd.split())
+        sub.call(strahl_cmd(inpt_fn).split())
 
 
 if __name__ == '__main__':

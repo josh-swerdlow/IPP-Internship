@@ -275,7 +275,7 @@ def interface(main_fn=None, bckg_fn=None, geom_fn=None, flux_fn=None,
             parameter_dict[file.type] = file.attribute_dictionary(keys, param_keys)
 
     # Clean-up
-    inpt_editor.write(main_fn)
+    inpt_editor.write(main_editor.parameter_file)
     summ_editor.write(parameter_dict)
 
     # Execute strahl

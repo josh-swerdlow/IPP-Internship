@@ -77,7 +77,7 @@ class ParameterFile():
 
             if self.verbose:
                 print(">>>>>Initialized a ParameterFile object with attributes: ")
-                print(self.__dict__)
+                print(self.attributes(True))
         else:
             self.verbose = False
 
@@ -101,7 +101,8 @@ class ParameterFile():
         # Iteratively calls the attributes method on parameters
         # with a list comprehension
         if all:
-            [param.attributes() for param in self.parameter_dict.values()]
+            [param.attributes() for param in self.parameter_dict.values()
+                if isinstance(param, Parameter)]
 
     def reset_states(self):
         """
@@ -216,7 +217,7 @@ class ParameterFile():
             of main, bckg, geom, flux. Returns an empty list if no file
              names are given.
         """
-        main_dir = "param"
+        main_dir = "param_files"
         bckg_dir = "nete"
         geom_dir = bckg_dir
         flux_dir = bckg_dir
@@ -229,7 +230,11 @@ class ParameterFile():
         parameter_files = list()
 
         if main_fn is not None:
+            if os.path.dirname(main_fn) is not '':
+                main_fn = os.path.basename(main_fn)
+
             main_path = os.path.join(main_dir, main_fn)
+
             if os.path.isfile(main_path):
 
                 main = cls._create_parameter_file(main_fn,
@@ -240,7 +245,11 @@ class ParameterFile():
                 parameter_files.append(main)
 
         if bckg_fn is not None:
+            if os.path.dirname(bckg_fn) is not '':
+                bckg_fn = os.path.basename(bckg_fn)
+
             bckg_path = os.path.join(bckg_dir, bckg_fn)
+
             if os.path.isfile(bckg_path):
 
                 bckg = cls._create_parameter_file(bckg_fn,
@@ -251,7 +260,11 @@ class ParameterFile():
                 parameter_files.append(bckg)
 
         if geom_fn is not None:
+            if os.path.dirname(geom_fn) is not '':
+                geom_fn = os.path.basename(geom_fn)
+
             geom_path = os.path.join(geom_dir, geom_fn)
+
             if os.path.isfile(geom_path):
 
                 geom = cls._create_parameter_file(geom_fn,
@@ -262,7 +275,11 @@ class ParameterFile():
                 parameter_files.append(geom)
 
         if flux_fn is not None:
+            if os.path.dirname(flux_fn) is not '':
+                flux_fn = os.path.basename(flux_fn)
+
             flux_path = os.path.join(flux_dir, flux_fn)
+
             if os.path.isfile(flux_path):
 
                 flux = cls._create_parameter_file(flux_fn,
@@ -346,9 +363,7 @@ class ParameterFile():
             * ParameterFile object for the given type of parameter file
         """
 
-        # params = ParameterFile._empty_background(verbosity)
-        params = list()
-        groups = list()
+        params, groups = ParameterFile._empty_background(verbosity)
 
         return cls("background", fn, 2, params, groups, verbosity)
 
@@ -363,7 +378,9 @@ class ParameterFile():
         Returns:
             * ParameterFile object for the given type of parameter file
         """
-        return cls("geometry", fn, 3, list(), verbosity)
+        params, groups = ParameterFile._empty_geometry(verbosity)
+
+        return cls("geometry", fn, 3, params, groups, verbosity)
 
     @classmethod
     def _flux_file(cls, fn, verbosity):
@@ -376,7 +393,25 @@ class ParameterFile():
         Returns:
             * ParameterFile object for the given type of parameter file
         """
-        return cls("flux", fn, 4, list(), verbosity)
+        params, groups = ParameterFile._empty_flux(verbosity)
+
+        return cls("flux", fn, 4, params, groups, verbosity)
+
+    @classmethod
+    def _atom_file(cls, fn, verbosity):
+        """
+        Class creation method for a atomic data file ParameterFile object.
+
+        Parameters:
+            * **fn** [str]: name of parameter file
+
+        Returns:
+            * ParameterFile object for the given type of parameter file
+        """
+
+        params, groups = ParameterFile._empty_atomic_data(verbosity)
+
+        return cls("atomic data", fn, 2, params, groups, verbosity)
 
     @staticmethod
     def _empty_main(verbosity):
@@ -460,15 +495,15 @@ class ParameterFile():
         ZERO = np.array([0], dtype=np.float)
 
         parameter_dict = {
-            "time-vector": Parameter.ne_numTimePts(ZERO, verbosity),
-            "time-vector": Parameter.ne_timePts(ZERO, verbosity),
-            "time-vector": Parameter.te_numTimePts(ZERO, verbosity),
-            "time-vector": Parameter.te_timePts(ZERO, verbosity),
-            "time-vector": Parameter.ti_numTimePts(ZERO, verbosity),
-            "time-vector": Parameter.ti_timePts(ZERO, verbosity)
+            # "time-vector": Parameter.ne_numTimePts(ZERO, verbosity),
+            # "time-vector": Parameter.ne_timePts(ZERO, verbosity),
+            # "time-vector": Parameter.te_numTimePts(ZERO, verbosity),
+            # "time-vector": Parameter.te_timePts(ZERO, verbosity),
+            # "time-vector": Parameter.ti_numTimePts(ZERO, verbosity),
+            # "time-vector": Parameter.ti_timePts(ZERO, verbosity)
         }
 
-        groups = list()
+        groups = []
 
         # parameter_dict = (Parameter.ne_numTimePts(ZERO),
         #             Parameter.ne_timePts(ZERO),
@@ -496,6 +531,18 @@ class ParameterFile():
         #             Parameter.ti_decayLength(ZERO))
 
         return parameter_dict, groups
+
+    @staticmethod
+    def _empty_geometry(verbosity):
+        pass
+
+    @staticmethod
+    def _empty_flux(verbosity):
+        pass
+
+    @staticmethod
+    def _empty_atomic_data(verbosity):
+        pass
 
 
 class InputFile():
@@ -556,7 +603,7 @@ class InputFile():
 
         new_inpt_prompt = "Please enter a new input file or exit [enter]? "
 
-        if inpt_fn is None:
+        if inpt_fn is None or inpt_fn is "":
             inpt_fn = input(new_inpt_prompt)
 
         # Checks if the file exists already and if so gives the user
@@ -655,7 +702,7 @@ class SummaryFile():
 
         # If sum_fn is not given, then we request the user
         sum_fn_prompt = "Please select or create a summary file or exit [enter]: "
-        if sum_fn is None:
+        if sum_fn is None or sum_fn is "":
             aux.print_dirContents("./summaries")
 
             sum_fn = input(sum_fn_prompt)

@@ -28,11 +28,8 @@ class Parameter():
     found within all of the parameter files (main, background, etc)
     """
 
-    def __init__(self, name, val,
-                valid_vals=None,
-                dtype=None,
-                info=None,
-                verbosity=False):
+    def __init__(self, name, val, priority,
+                valid_vals=None, dtype=None, info=None, verbosity=False):
         """
         Initializes a Parameter object
 
@@ -75,7 +72,7 @@ class Parameter():
         self.dtype = dtype
 
         if info is None or not isinstance(info, str):
-            info = ("There is no help doc for {}. Try viewing the manual."
+            info = ("There is no help doc for '{}'. Try viewing the manual."
                     .format(name))
         self.help = info
 
@@ -83,7 +80,7 @@ class Parameter():
             self.verbose = verbosity
 
             if self.verbose:
-                print(">>>>>Initialized a Parameter object for {} with attributes:"
+                print(">>>>>Initialized a Parameter object for '{}' with attributes:"
                       .format(self.name))
                 print(self.__dict__)
 
@@ -185,180 +182,180 @@ class Parameter():
             print("Changed the state of {} to {}"
                   .format(self.name, self.state))
 
-    # Main Input Parameters -- at the moment this is limited
+# Main Input Parameters -- at the moment this is limited
     @classmethod
-    def atomic_weight(cls, value, verbosity):
+    def atomic_weight(cls, value, verbosity=False):
         """Method to generate the atomic weight parameter"""
         name = "atomic weight"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 1, info=info, verbosity=verbosity)
 
     @classmethod
-    def charge(cls, value, verbosity):
+    def charge(cls, value, verbosity=False):
         """Method to generate the charge parameter"""
         name = "charge"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 2, info=info, verbosity=verbosity)
 
     @classmethod
-    def shot(cls, value, verbosity):
+    def shot(cls, value, verbosity=False):
         """Method to generate the shot parameter"""
         name = "shot"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 3, info=info, verbosity=verbosity)
 
     @classmethod
-    def index(cls, value, verbosity):
+    def index(cls, value, verbosity=False):
         """Method to generate the index parameter"""
         name = "index"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 4, info=info, verbosity=verbosity)
 
     @classmethod
-    def rho(cls, value, verbosity):
+    def rho(cls, value, verbosity=False):
         """Method to generate the rho parameter"""
         name = "rho"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 5, info=info, verbosity=verbosity)
 
     @classmethod
-    def number_grid_points(cls, value, verbosity):
+    def number_grid_points(cls, value, verbosity=False):
         """Method to generate the number of grid points parameter"""
         name = "number of grid points"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 6, info=info, verbosity=verbosity)
 
     @classmethod
-    def dr_0(cls, value, verbosity):
+    def dr_0(cls, value, verbosity=False):
         """Method to generate the dr_0 parameter"""
         name = "dr_0"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 7, info=info, verbosity=verbosity)
 
     @classmethod
-    def dr_1(cls, value, verbosity):
+    def dr_1(cls, value, verbosity=False):
         """Method to generate the dr_1 parameter"""
         name = "dr_1"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 8, info=info, verbosity=verbosity)
 
     @classmethod
-    def number_of_changes(cls, value, verbosity):
+    def number_of_changes(cls, value, verbosity=False):
         """Method to generate the number of changes parameter"""
         name = "number of changes (start-time+... +stop-time)"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value,9, info=info, verbosity=verbosity)
 
     @classmethod
-    def time(cls, value, verbosity):
+    def time(cls, value, verbosity=False):
         """Method to generate the time parameter"""
         name = "time"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 10, info=info, verbosity=verbosity)
 
     @classmethod
-    def dt_start(cls, value, verbosity):
+    def dt_start(cls, value, verbosity=False):
         """Method to generate the dt at start parameter"""
         name = "dt at start"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 11, info=info, verbosity=verbosity)
 
     @classmethod
-    def dt_increase(cls, value, verbosity):
+    def dt_increase(cls, value, verbosity=False):
         """Method to generate the increase of dt after cycle parameter"""
         name = "increase of dt after cycle"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 12, info=info, verbosity=verbosity)
 
     @classmethod
-    def steps_per_cycle(cls, value, verbosity):
+    def steps_per_cycle(cls, value, verbosity=False):
         """Method to generate the steps per cycle parameter"""
         name = "steps per cycle"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 13, info=info, verbosity=verbosity)
 
     @classmethod
-    def number_of_impurities(cls, value, verbosity):
+    def number_of_impurities(cls, value, verbosity=False):
         """Method to generate the number of impurities parameter"""
         name = "number of impurities"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 14, info=info, verbosity=verbosity)
 
     @classmethod
-    def element(cls, value, verbosity):
+    def element(cls, value, verbosity=False):
         """Method to generate the element parameter"""
         name = "element"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 15, info=info, verbosity=verbosity)
 
     @classmethod
-    def impure_atomic_weight(cls, value, verbosity):
+    def impure_atomic_weight(cls, value, verbosity=False):
         """Method to generate the impure atomic weight parameter"""
         name = "impure atomic weight"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 16, info=info, verbosity=verbosity)
 
     @classmethod
-    def energy_of_neutrals(cls, value, verbosity):
+    def energy_of_neutrals(cls, value, verbosity=False):
         """Method to generate the energy of neutrals parameter"""
         name = "energy of neutrals(eV)"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name, value, info=info, verbosity=verbosity)
+        return cls(name, value, 17, info=info, verbosity=verbosity)
 
-    # Background Input Parameters
+# Background Input Parameters
     @classmethod
-    def ne_numTimePts(cls, value, verbosity):
+    def ne_numTimePts(cls, value, verbosity=False):
         """
         Method to generate the electon density number of time
         points parameter
@@ -371,7 +368,7 @@ class Parameter():
         return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ne_timePts(cls, value, verbosity):
+    def ne_timePts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ne_timePts"
         info = Parameter._help(name)
@@ -381,7 +378,7 @@ class Parameter():
         return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ne_paramType(cls, value, verbosity):
+    def ne_paramType(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ne_paramType"
         info = Parameter._help(name)
@@ -391,7 +388,7 @@ class Parameter():
         return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ne_radCoord(cls, value, verbosity):
+    def ne_radCoord(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ne_radCoord"
         info = Parameter._help(name)
@@ -401,7 +398,7 @@ class Parameter():
         return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ne_numInterpPts(cls, value, verbosity):
+    def ne_numInterpPts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ne_numInterpPts"
         info = Parameter._help(name)
@@ -411,7 +408,7 @@ class Parameter():
         return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ne_radGrid(cls, value, verbosity):
+    def ne_radGrid(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ne_radGrid"
         info = Parameter._help(name)
@@ -421,7 +418,7 @@ class Parameter():
         return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ne_radGridPts(cls, value, verbosity):
+    def ne_radGridPts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ne_radGridPts"
         info = Parameter._help(name)
@@ -431,7 +428,7 @@ class Parameter():
         return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ne_decayLength(cls, value, verbosity):
+    def ne_decayLength(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ne_decayLength"
         info = Parameter._help(name)
@@ -441,7 +438,7 @@ class Parameter():
         return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def te_numTimePts(cls, value, verbosity):
+    def te_numTimePts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "te_numTimePts"
         info = Parameter._help(name)
@@ -451,97 +448,97 @@ class Parameter():
         return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def te_timePts(cls, value, verbosity):
+    def te_timePts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "te_timePts"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name0, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def te_paramType(cls, value, verbosity):
+    def te_paramType(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "te_paramType"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name1, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def te_radCoord(cls, value, verbosity):
+    def te_radCoord(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "te_radCoord"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name2, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def te_numInterpPts(cls, value, verbosity):
+    def te_numInterpPts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "te_numInterpPts"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name3, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def te_radGrid(cls, value, verbosity):
+    def te_radGrid(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "te_radGrid"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name4, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def te_radGridPts(cls, value, verbosity):
+    def te_radGridPts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "te_radGrid"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name5, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def te_decayLength(cls, value, verbosity):
+    def te_decayLength(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "te_decayLength"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name6, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ti_numTimePts(cls, value, verbosity):
+    def ti_numTimePts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ti_numTimePts"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name7, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ti_timePts(cls, value, verbosity):
+    def ti_timePts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ti_timePts"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name8, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ti_paramType(cls, value, verbosity):
+    def ti_paramType(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ti_paramType"
         info = Parameter._help(name)
@@ -551,7 +548,7 @@ class Parameter():
         return cls(name9, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ti_radCoord(cls, value, verbosity):
+    def ti_radCoord(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ti_radCoord"
         info = Parameter._help(name)
@@ -561,37 +558,37 @@ class Parameter():
         return cls(name0, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ti_numInterpPts(cls, value, verbosity):
+    def ti_numInterpPts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ti_numInterpPts"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name1, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ti_radGrid(cls, value, verbosity):
+    def ti_radGrid(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ti_radGrid"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name2, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ti_radGridPts(cls, value, verbosity):
+    def ti_radGridPts(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ti_radGridPts"
         info = Parameter._help(name)
         dtype = None
         valid_vals = None
 
-        return cls(name3, value, info=info, verbosity=verbosity)
+        return cls(name, value, info=info, verbosity=verbosity)
 
     @classmethod
-    def ti_decayLength(cls, value, verbosity):
+    def ti_decayLength(cls, value, verbosity=False):
         """Method to generate the  parameter"""
         name = "ti_decayLength"
         info = Parameter._help(name)

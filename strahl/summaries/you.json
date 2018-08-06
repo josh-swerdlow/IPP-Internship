@@ -4,22 +4,22 @@
         "parameter_dict": {
             "atomic weight": {
                 "name": "atomic weight",
-                "value": 1,
+                "value": 9,
                 "state": true
             },
             "charge": {
                 "name": "charge",
-                "value": 2,
+                "value": 99,
                 "state": true
             },
             "shot": {
                 "name": "shot",
-                "value": 3,
+                "value": 999,
                 "state": true
             },
             "index": {
                 "name": "index",
-                "value": 4,
+                "value": 9999,
                 "state": true
             },
             "rho": {
@@ -52,53 +52,49 @@
             },
             "number of changes (start-time+... +stop-time)": {
                 "name": "number of changes (start-time+... +stop-time)",
-                "value": 5,
+                "value": 99999,
                 "state": true
             },
             "time": {
                 "name": "time",
-                "value": 6,
+                "value": 999999,
                 "state": true
             },
             "dt at start": {
                 "name": "dt at start",
-                "value": 7,
+                "value": 9999999,
                 "state": true
             },
             "increase of dt after cycle": {
                 "name": "increase of dt after cycle",
-                "value": 8,
+                "value": 99999999,
                 "state": true
             },
             "steps per cycle": {
                 "name": "steps per cycle",
-                "value": 9,
+                "value": 9999999999,
                 "state": true
             },
             "number of impurities": {
                 "name": "number of impurities",
-                "value": 10,
+                "value": 99999999,
                 "state": true
             },
             "element": {
                 "name": "element",
-                "value": 11,
+                "value": 999999,
                 "state": true
             },
             "impure atomic weight": {
                 "name": "impure atomic weight",
-                "value": 12,
+                "value": 999999,
                 "state": true
             },
             "energy of neutrals(eV)": {
                 "name": "energy of neutrals(eV)",
-                "value": 13,
+                "value": 99,
                 "state": true
             }
         }
-    },
-    "background": {
-        "fn": "pp22022.2",
-        "parameter_dict": {}
     }
 }

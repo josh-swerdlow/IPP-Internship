@@ -88,19 +88,19 @@ def generateDictionary(dic):
     return D
 
 
-def parameter_sets(dic=None):
+def parameter_lists(dic=None):
     """
-    Returns the entire parameter set and the on and off state
-    parameter sets seperately.
+    Returns the entire parameter set for the on and off state
+    parameter sets seperately
     """
+    params_on = list()
+    params_off = list()
 
-    keys, vals = zip(*dic.items())
+    if isinstance(dic, dict) and len(dic) != 0:
+        print(dic)
+        params, vals = zip(*dic.items())
 
-    params = set(keys)
-
-    params_on = {key for (key, val) in zip(keys, vals) if val['state']}
-    params_off = params - params_on
+        params_on = [key for (key, val) in zip(params, vals) if val['state']]
+        params_off = [param for param in params if param not in params_on]
 
     return params_on, params_off
-
-

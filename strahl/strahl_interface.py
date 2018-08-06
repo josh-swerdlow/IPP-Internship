@@ -54,22 +54,58 @@ def interface(main_fn=None, bckg_fn=None, geom_fn=None, flux_fn=None,
     input files.
     """
     if main_fn is None:
-        main_fn = "op12a_171122022_FeLBO3_test"
+        file_name = ""
+
+        if "-main_fn" in sys.argv:
+            index = sys.argv.index("-main_fn")
+            file_name = sys.argv[index + 1]
+
+        main_fn = file_name
 
     if bckg_fn is None:
-        bckg_fn = ""
+        file_name = ""
+
+        if "-bckg_fn" in sys.argv:
+            index = sys.argv.index("-bckg_fn")
+            file_name = sys.argv[index + 1]
+
+        bckg_fn = file_name
 
     if geom_fn is None:
-        geom_fn = ""
+        file_name = ""
+
+        if "-geom_fn" in sys.argv:
+            index = sys.argv.index("-geom_fn")
+            file_name = sys.argv[index + 1]
+
+        geom_fn = file_name
 
     if flux_fn is None:
-        flux_fn = ""
+        file_name = ""
+
+        if "-flux_fn" in sys.argv:
+            index = sys.argv.index("-flux_fn")
+            file_name = sys.argv[index + 1]
+
+        flux_fn = file_name
 
     if inpt_fn is None:
-        inpt_fn = "test"
+        file_name = ""
+
+        if "-inpt_fn" in sys.argv:
+            index = sys.argv.index("-inpt_fn")
+            file_name = sys.argv[index + 1]
+
+        inpt_fn = file_name
 
     if summ_fn is None:
-        summ_fn = "summ_test.json"
+        file_name = ""
+
+        if "-summ_fn" in sys.argv:
+            index = sys.argv.index("-summ_fn")
+            file_name = sys.argv[index + 1]
+
+        summ_fn = file_name
 
     if "-e" in sys.argv:
         execute = True
@@ -81,167 +117,162 @@ def interface(main_fn=None, bckg_fn=None, geom_fn=None, flux_fn=None,
 
     main_editor = None
     bckg_editor = None
+    geom_editor = None
+    flux_editor = None
+
     inpt_editor = None
     summ_editor = None
-    # FIND A WAY TO DEAL WITH ENTERING ONLY SOME OF THE PARAMETER FILE
-    # NAMES AND HOW TO UNPACK THEM CORRECTLY SO ONE DOESN'T NEED TO
-    # CHANGE THE CODE ALL THE TIME (i.e. if one only changes the main file
-    # then this should be able to run, even if they don't want to look
-    # at the background file)
-    parameter_editors = ParameterFileEditor.create_editors(main_fn,
-                                                           bckg_fn,
+
+    parameter_editors = ParameterFileEditor.create_editors(main_fn, bckg_fn,
+                                                           geom_fn, flux_fn,
                                                            verbosity=verbose)
-    main_editor = parameter_editors
+
+    main_editor, bckg_editor, geom_editor, flux_editor = parameter_editors
 
     inpt_editor = InputFileEditor(inpt_fn=inpt_fn, verbosity=verbose)
 
     summ_editor = SummaryFileEditor(sum_fn=summ_fn, verbosity=verbose)
 
     for editor in parameter_editors:
-        editor.search_parameter_file()
+        if editor is not None:
+            editor.search_parameter_file()
 
     # Load the summary file into a new object and extract relevant features
     # into a set data structure
     summ_dict = None
-    summ_on = set()
-    summ_off = set()
+    summ_on = list()
+    summ_off = list()
     parameter_dict = dict()
 
     for editor in parameter_editors:
-        file = editor.parameter_file
+        if editor is not None:
+            file = editor.parameter_file
 
-        if verbose:
-            print("Iterating through parameter files: {}".format(file.type))
+            if verbose:
+                print("Iterating through parameter files: {}".format(file.type))
 
-        if summ_editor.loadable:
-            summ_dict = summ_editor.get()
+            if summ_editor.loadable:
+                summ_dict = summ_editor.get()
 
-            sum_param = summ_dict[file.type]['param_dict']
+                sum_param = summ_dict[file.type]['param_dict']
 
-            summ_on, summ_off = aux.parameter_sets(sum_param)
+                summ_on, summ_off = aux.parameter_lists(sum_param)
 
-        keys = ['fn', 'parameter_dict']
-        param_keys = ['name', 'value', 'state']
+            keys = ['fn', 'parameter_dict']
+            param_keys = ['name', 'value', 'state']
 
-        # Extract the parameters of a given parameter file
-        file_dict = file.attribute_dictionary(keys, param_keys)
+            # Extract the parameters of a given parameter file
+            file_dict = file.attribute_dictionary(keys, param_keys)
 
-        param = file_dict['parameter_dict']
+            file_param = file_dict['parameter_dict']
 
-        # Extract relevant parameter file features into a set data structure
-        file_on, file_off = aux.parameter_sets(param)
+            # Extract relevant parameter file features into a set data structure
+            file_on, file_off = aux.parameter_lists(file_param)
 
-        # Perform set operations to determine appropriate actions
+            # Perform operations to determine appropriate actions
+            # Change the value: param_on & sum_on
+            on_in_both = [param for param in file_on if param in summ_on]
 
-        # Change the value: param_on & sum_on
-        on_in_both = file_on & summ_on
+            query_str = lambda x: ("Enter a new value for '{}' or ".format(x) +
+                "keep the same value ({}) [enter]: "
+                .format(sum_param[x]))
 
-        query_str = lambda x: ("Enter a new value for '{}' or ".format(x) +
-            "keep the same value ({}) [enter]: "
-            .format(sum_param[x]))
+            if verbose:
+                print("Iterating through parameters that are on in the summary " +
+                    "and the parameter file.")
 
-        # TODO: PUT A CHECK FOR THE NUMBER OF VALUES EXPECTED
-        # TODO: MAKE EVERYTHING INTO A GROUPED OBJECT AND REWRITE CODE
-        #   TO GENERALIZE FOR ANY DIMENSIONAL OBJECT!
-        if verbose:
-            print("Iterating through parameters that are on in the summary " +
-                "and the parameter file.")
+            checked = list()
+            for param in on_in_both:
+                if param not in checked:
+                    group = file.in_group(param)
 
-        groups = list()
-        for param in on_in_both:
-            group = file.in_group(param)
+                    if group is not None:
+                        file.groups.remove(group)
 
-            if group is not None:
-                file.groups.remove(group)
+                        if verbose:
+                            print("Iterating through parameters in group {}".format(group))
 
-                if verbose:
-                    print("Iterating through parameters in group {}".format(group))
+                        vals = list()
+                        for par in group:
+                            # Evaluate the user input
+                            val = query.evaluate(query_str(par))
 
-                vals = list()
-                for par in group:
-                    # Evaluate the user input
-                    val = query.evaluate(query_str(par))
+                            # Change the value in the parameter files dictionary
+                            file.parameter_dict[par].change_value(val)
 
-                    # Change the value in the parameter files dictionary
-                    file.parameter_dict[par].change_value(val)
+                            # Append to our list
+                            vals.append(val)
 
-                    # Append to our list
-                    vals.append(val)
+                            # Add to our checked list
+                            checked.append(par)
 
-                    # Remove from set to not iterate over again
-                    on_in_both.remove(par)
+                        # Change list to np.array and transpose for approriate
+                        # writing format into STRAHL
+                        val = np.array(vals).transpose()
 
-                # Change list to np.array and transpose for approriate
-                # writing format into STRAHL
-                val = np.array(vals).transpose()
+                        # Add the val to the input files list of values
+                        inpt_editor.add(val)
 
-                # Add the val to the input files list of values
-                inpt_editor.add(val)
+                    else:
+                        val = query.evaluate(query_str(param))
 
-                groups.append(groupobject)
+                        if val is None:
+                            val = sum_param[param]['value']
 
-        for group in groups:
-            for param in group:
-                param_on_sum_off.remove(param)
+                        inpt_editor.add(val)
 
-        for param in on_in_both:
-            val = query.evaluate(query_str(param))
+                        file.parameter_dict[param].change_value(val)
 
-            if val is None:
-                val = sum_param[param]['value']
+                        checked.append(param)
 
-            inpt_editor.add(val)
+            # Change the value: param_on - sum_ff
+            param_on_sum_off = [param for param in file_on if param not in summ_off]
 
-            file.parameter_dict[param].change_value(val)
+            if verbose:
+                print("Iterating through parameters that are off in the summary " +
+                    "and on in the parameter file.")
 
-        # Change the value: param_on - sum_ff
-        param_on_sum_off = file_on - summ_off
+            query_str = lambda x: "Enter your new value for '{}': ".format(x)
 
-        if verbose:
-            print("Iterating through parameters that are off in the summary " +
-                "and on in the parameter file.")
+            checked = list()
+            for param in param_on_sum_off:
+                if param not in checked:
+                    group = file.in_group(param)
 
-        query_str = lambda x: "Enter your new value for '{}': ".format(x)
+                    if group is not None:
+                        file.groups.remove(group)
 
-        groups = list()
-        for param in param_on_sum_off:
-            group = file.in_group(param)
+                        vals = list()
+                        for par in group:
+                            # Evaluate the user input
+                            val = query.evaluate(query_str(par))
 
-            if group is not None:
-                file.groups.remove(group)
+                            # Change the value in the parameter files dictionary
+                            file.parameter_dict[par].change_value(val)
 
-                vals = list()
-                for par in group:
-                    # Evaluate the user input
-                    val = query.evaluate(query_str(par))
+                            # Append to our input list
+                            vals.append(val)
 
-                    # Change the value in the parameter files dictionary
-                    file.parameter_dict[par].change_value(val)
+                            # Add to our checked list
+                            checked.append(par)
 
-                    # Append to our list
-                    vals.append(val)
+                        # Change list to np.array and transpose for approriate
+                        # writing format into STRAHL
+                        val = np.array(vals).transpose()
 
-                # Change list to np.array and transpose for approriate
-                # writing format into STRAHL
-                val = np.array(vals).transpose()
+                        # Add the val to the input files list of values
+                        inpt_editor.add(val)
 
-                # Add the val to the input files list of values
-                inpt_editor.add(val)
+                    else:
+                        val = query.evaluate(query_str(param))
 
-                groups.append(group)
+                        inpt_editor.add(val)
 
-        for group in groups:
-            for param in group:
-                param_on_sum_off.remove(param)
+                        file.parameter_dict[param].change_value(val)
 
-        for param in param_on_sum_off:
-            val = query.evaluate(query_str(param))
+                        checked.append(param)
 
-            inpt_editor.add(val)
-
-            file.parameter_dict[param].change_value(val)
-
-        parameter_dict[file.type] = file.attribute_dictionary(keys, param_keys)
+            parameter_dict[file.type] = file.attribute_dictionary(keys, param_keys)
 
     # Clean-up
     inpt_editor.write(main_fn)

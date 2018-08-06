@@ -24,6 +24,7 @@ __author__ = 'Joshua Swerdow'
 
 import os
 import re
+import sys
 import json
 
 
@@ -332,31 +333,8 @@ class ParameterFileEditor(FileEditor, ParameterFile):
             print(">>>>>Initialized a parameter file editor for {}"
                  .format(file_path))
 
-    # def search_parameter_files(self, param_files, search_key="comments"):
-    #     """
-    #     Iterates over a series of ParameterFile objects, searches for
-    #     the given search parameter in each, and changes the corresponding
-    #     state for each parameter.
-
-    #     Parameters:
-    #         * **paramFiles** [list]: list of ParameterFile objects
-    #             to iterate over
-    #         * **search_key** [str|"comments"]: chooses to search
-    #             for comments or non-comments
-    #         * **verbose** [bool|False]: turn on commented output
-    #     """
-    #     for file in param_files:
-    #         if self.verbose:
-    #             print("Searching {}".format(file))
-
-    #         self.search_parameter_file(file, search_key)
-
     @classmethod
-    def create_editors(cls,
-                       main_fn=None,
-                       bckg_fn=None,
-                       geom_fn=None,
-                       flux_fn=None,
+    def create_editors(cls, *file_names,
                        verbosity=False):
         """
         Loads multiple ParameterFileEditor objects depending on the file_names.
@@ -364,10 +342,8 @@ class ParameterFileEditor(FileEditor, ParameterFile):
         file_type in the following order: main, background, geometry, flux.
 
         Parameters:
-            * **main_fn** [str|None]: main file name
-            * **bckg_fn** [str|None]: background file name
-            * **geom_fn** [str|None]: geometry file name
-            * **flux_fn** [str|None]: flux file name
+            * **file_names** [list]: list of parameter file names
+                expects one of each (main, background, geometry, and flux)
             * **verbosity** [bool|False]: turns on and off verbose ouput
 
         Returns:
@@ -375,57 +351,71 @@ class ParameterFileEditor(FileEditor, ParameterFile):
             given in order of main, bckg, geom, flux. Returns an
             empty list if no file names are given.
         """
-        main_dir = "param"
+        if len(file_names) == 0:
+            sys.exit("No file names given to create paramater editors.")
+
+        if not isinstance(file_names, list):
+            file_names = list(file_names)
+
+        main_dir = "param_files"
         bckg_dir = "nete"
         geom_dir = bckg_dir
         flux_dir = bckg_dir
+
+        directories = [main_dir, bckg_dir, geom_dir, flux_dir]
 
         main = None
         bckg = None
         geom = None
         flux = None
 
-        parameter_editors = list()
+        parameter_editors = [main, bckg, geom, flux]
 
-        if main_fn is not None:
-            main_path = os.path.join(main_dir, main_fn)
-            if os.path.isfile(main_path):
+        for index in range(len(file_names)):
+            if file_names[index] is not "":
 
-                main = cls.main_editor(main_fn,
-                                       main_path,
-                                       verbosity)
+                if os.path.dirname(file_names[index]) is not '':
+                    file_names[index] = os.path.basename(file_names[index])
 
-                parameter_editors.append(main)
+                path = os.path.join(directories[index], file_names[index])
 
-        if bckg_fn is not None:
-            bckg_path = os.path.join(bckg_dir, bckg_fn)
-            if os.path.isfile(bckg_path):
+                if os.path.isfile(path):
 
-                bckg = cls.bckg_editor(bckg_fn,
-                                       bckg_path,
-                                       verbosity)
+                    editor = cls.main_editor(file_names[index],
+                                           path,
+                                           verbosity)
 
-                parameter_editors.append(bckg)
+                    parameter_editors[index] = editor
 
-        if geom_fn is not None:
-            geom_path = os.path.join(geom_dir, geom_fn)
-            if os.path.isfile(geom_path):
+        # if bckg_fn is not "":
+        #     bckg_path = os.path.join(bckg_dir, bckg_fn)
+        #     if os.path.isfile(bckg_path):
 
-                geom = cls.geom_editor(geom_fn,
-                                       geom_path,
-                                       verbosity)
+        #         bckg = cls.bckg_editor(bckg_fn,
+        #                                bckg_path,
+        #                                verbosity)
 
-                parameter_editors.append(geom)
+        #         parameter_editors[1] = bckg
 
-        if flux_fn is not None:
-            flux_path = os.path.join(flux_dir, flux_fn)
-            if os.path.isfile(flux_path):
+        # if geom_fn is not "":
+        #     geom_path = os.path.join(geom_dir, geom_fn)
+        #     if os.path.isfile(geom_path):
 
-                flux = cls.flux_editor(flux_fn,
-                                       flux_path,
-                                       verbosity)
+        #         geom = cls.geom_editor(geom_fn,
+        #                                geom_path,
+        #                                verbosity)
 
-                parameter_editors.append(flux)
+        #         parameter_editors[2] = geom
+
+        # if flux_fn is not "":
+        #     flux_path = os.path.join(flux_dir, flux_fn)
+        #     if os.path.isfile(flux_path):
+
+        #         flux = cls.flux_editor(flux_fn,
+        #                                flux_path,
+        #                                verbosity)
+
+        #         parameter_editors[3] = flux
 
         return parameter_editors
 
@@ -662,8 +652,7 @@ class ParameterFileEditor(FileEditor, ParameterFile):
 
         return keywords
 
-    @staticmethod
-    def _change_relevant_parameters(parameter_file, keywords):
+    def _change_relevant_parameters(self, parameter_file, keywords):
         """
         Each paramFile obj is created for the different parameterFiles
         (i.e. main, background, geometry, and flux). Each paramFile obj
@@ -687,20 +676,6 @@ class ParameterFileEditor(FileEditor, ParameterFile):
         # Change parameters to correct state
         [parameter_file.parameter_dict[param_name].change_state()
             for param_name in relev_parameters]
-
-    # def comment(self):
-    #     """
-    #     If something is commented in the parameter files, then
-    #     it should be immediately added to the input file
-    #     """
-    #     pass
-
-    # def uncomment(self):
-    #     """
-    #     If something is uncommented in the parameter files, then
-    #     it should be immediately removed from the input file
-    #     """
-    #     pass
 
 
 class SummaryFileEditor(SummaryFile):

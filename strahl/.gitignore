@@ -1,10 +1,20 @@
+# Hidden files and caches
 .DS_Store
 __pycache__
-./deprecated
-./docs
-peter_chisquaredfitter.py
-./nete/**
-./param_files/**
-./summaries/**
-./result/**
 
+# Directories
+deprecated/**
+docs/**
+nete/**
+param_files/**
+summaries/**
+result/**
+mirmpfit/**
+
+# Python Files
+peter_chisquaredfitter.py
+toy_model.py
+
+# Unclassified Files
+test_input
+fit_update_input

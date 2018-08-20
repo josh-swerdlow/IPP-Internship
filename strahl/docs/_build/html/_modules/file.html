@@ -1,0 +1,997 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>file &#8212; strahl 1.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">strahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for file</h1><div class="highlight"><pre>
+<span></span><span class="c1">########################################</span>
+<span class="c1"># File name: parameters.py             #</span>
+<span class="c1"># Author: Joshua Swerdow               #</span>
+<span class="c1"># Date created: 5/20/2018              #</span>
+<span class="c1"># Date last modified:                  #</span>
+<span class="c1"># Python Version: 3.0+                 #</span>
+<span class="c1">########################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Summary: Stores the parameter, input, and summary file classes</span>
+<span class="sd">    which are used to order information and methods that</span>
+<span class="sd">    create, interact, or load the parameter, input, or summary</span>
+<span class="sd">    files.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Joshua Swerdow&#39;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">auxillary</span> <span class="k">as</span> <span class="nn">aux</span>
+<span class="kn">import</span> <span class="nn">subprocess</span> <span class="k">as</span> <span class="nn">sub</span>
+
+<span class="kn">from</span> <span class="nn">parameters</span> <span class="k">import</span> <span class="n">Parameter</span>
+
+
+<div class="viewcode-block" id="ParameterFile"><a class="viewcode-back" href="../parameter_file.html#file.ParameterFile">[docs]</a><span class="k">class</span> <span class="nc">ParameterFile</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object ecapsulates the entire state of a given parameter file.</span>
+
+<span class="sd">    A parameter file is defined as a main, background, geometry, flux,</span>
+<span class="sd">    or atomic data file which has the parameter values for STRAHL to read.</span>
+
+<span class="sd">    Each file has a different file name syntax and storage location. Please</span>
+<span class="sd">    see the STRAHL manual for more information.</span>
+<span class="sd">        * ./param: main files, atomic data</span>
+<span class="sd">        * ./nete: background, geometry, flux</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ParameterFile.__init__"><a class="viewcode-back" href="../parameter_file.html#file.ParameterFile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_type</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span>
+                 <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initiatlizes a ParameterFile object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param_type (str): The type of parameter file which is being created</span>
+<span class="sd">                i.e) &#39;main&#39;, &#39;background&#39;, &#39;geometry&#39;, &#39;flux&#39;, &#39;atomic_data&#39;</span>
+<span class="sd">            fn (str): The file&#39;s name</span>
+<span class="sd">            priority (int): The priority of the parameter file in the</span>
+<span class="sd">                input file.</span>
+<span class="sd">            params (dict): Dictionary of initialized Parameter objects</span>
+<span class="sd">                with associated names.</span>
+<span class="sd">            groups (list): Nested lists of parameter object names which are</span>
+<span class="sd">                found together on a single line.</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            type (str): &#39;main&#39;, &#39;background&#39;, &#39;geometry&#39;, &#39;flux&#39;, &#39;atomic_data&#39;</span>
+<span class="sd">            fn (str): The files name</span>
+<span class="sd">            priority (int): The priority of the parameter file in the</span>
+<span class="sd">                input file.</span>
+<span class="sd">            parameter_dict (dict): Dictionary of initialized parameter objects</span>
+<span class="sd">                with associated names.</span>
+<span class="sd">            size (int): Size of the parameter_dict</span>
+<span class="sd">            groups (list): Allows code to search for groups of parameters</span>
+<span class="sd">                rather than just single parameters.</span>
+<span class="sd">                For more detail, see manual.</span>
+<span class="sd">            verbose (bool): Determines if verbose execution is used</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">param_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn</span> <span class="o">=</span> <span class="n">fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">priority</span>
+
+        <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Error: params is NoneType.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_dict</span> <span class="o">=</span> <span class="n">params</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">groups</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;groups is NoneType.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">groups</span> <span class="o">=</span> <span class="n">groups</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">verbosity</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbosity</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; Initialized a ParameterFile object with attributes:&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="ParameterFile.attributes"><a class="viewcode-back" href="../parameter_file.html#file.ParameterFile.attributes">[docs]</a>    <span class="k">def</span> <span class="nf">attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">all</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prints out all of the attributes of the parmeterFile object</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            all (bool): Determines whether to recursively call</span>
+<span class="sd">                parameters.attributes() on each parameter object in</span>
+<span class="sd">                paramaterFile.parameter_dict</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Printing attributes ...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Attributes of </span><span class="si">{}</span><span class="s2"> object </span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+        <span class="c1"># Iteratively calls the attributes method on parameters</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">:</span>
+            <span class="p">[</span><span class="n">param</span><span class="o">.</span><span class="n">attributes</span><span class="p">()</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">param</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="ParameterFile.reset_states"><a class="viewcode-back" href="../parameter_file.html#file.ParameterFile.reset_states">[docs]</a>    <span class="k">def</span> <span class="nf">reset_states</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Iteratively resets all the states for each Parameter object</span>
+<span class="sd">        found in the ParameterFile&#39;s parameter_dict attribute.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Resetting states ...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_dict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">param</span><span class="o">.</span><span class="n">change_state</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParameterFile.attribute_dictionary"><a class="viewcode-back" href="../parameter_file.html#file.ParameterFile.attribute_dictionary">[docs]</a>    <span class="k">def</span> <span class="nf">attribute_dictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">param_keys</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dic</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Recursively generates nested dictionaries of the attributes of the</span>
+<span class="sd">        ParameterFile object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            keys (list): A list of attribute names from the</span>
+<span class="sd">                ParameterFile object that you would like to have in the</span>
+<span class="sd">                dictionary. If not given, it will assume all of the keys</span>
+<span class="sd">                of the dic object.</span>
+<span class="sd">            param_keys (list): A list of attribute names from</span>
+<span class="sd">                the parameter object that you would like to have in the</span>
+<span class="sd">                dictionary. If not given</span>
+
+<span class="sd">            dic (dict): A dictionary object to operate on (presumably a</span>
+<span class="sd">                ParameterFile&#39;s params_dict). If not given, it will assume</span>
+<span class="sd">                the object __dict__ is the appropriate dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Nested dictionary of all attributes requested by the user</span>
+<span class="sd">            from the ParameterFile object and the parameters objects</span>
+<span class="sd">            within. Note: This will turn any np.ndarray instance into a</span>
+<span class="sd">            standard Python list instances.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dic</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="n">dic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">dic</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating a dictionary of </span><span class="si">{}</span><span class="s2">&#39;s attributes ...&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span>
+
+        <span class="n">attributes</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="n">dic</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Grabbing the following attributes:&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attribute_dictionary</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">param_keys</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">):</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">attribute_dictionary</span><span class="p">(</span><span class="n">param_keys</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+            <span class="n">attributes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="k">return</span> <span class="n">attributes</span></div>
+
+<div class="viewcode-block" id="ParameterFile.change_value"><a class="viewcode-back" href="../parameter_file.html#file.ParameterFile.change_value">[docs]</a>    <span class="k">def</span> <span class="nf">change_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Changes the value for the parameters object to val using the</span>
+<span class="sd">        parameters.change_val() method.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            param (:obj:`Parameter`): A Parameter object to operate on</span>
+<span class="sd">            val: A value(s) to be assigned to the param Parameter object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">param</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Error: param is None.&quot;</span><span class="p">)</span>
+
+        <span class="n">param</span><span class="o">.</span><span class="n">change_value</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">in_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter</span><span class="p">):</span>
+        <span class="n">key_group</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
+                <span class="n">key_group</span> <span class="o">=</span> <span class="n">group</span>
+
+        <span class="k">return</span> <span class="n">key_group</span>
+
+<div class="viewcode-block" id="ParameterFile.create_parameter_files"><a class="viewcode-back" href="../parameter_file.html#file.ParameterFile.create_parameter_files">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_parameter_files</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span>
+                       <span class="n">main_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">bckg_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">geom_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">flux_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates multiple parameter file objects depending on the file_names.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            main_fn (str): A main file name</span>
+<span class="sd">            bckg_fn (str): A background file name</span>
+<span class="sd">            geom_fn (str): A geometry file name</span>
+<span class="sd">            flux_fn (str): A flux file name</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of ParameterFile objects for the file names given in order</span>
+<span class="sd">            of main, bckg, geom, flux. Does not return anything if a file name</span>
+<span class="sd">            for the parameter file type is not given. Returns an empty list if</span>
+<span class="sd">            no file names are given.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">main_dir</span> <span class="o">=</span> <span class="s2">&quot;param_files&quot;</span>
+        <span class="n">bckg_dir</span> <span class="o">=</span> <span class="s2">&quot;nete&quot;</span>
+        <span class="n">geom_dir</span> <span class="o">=</span> <span class="n">bckg_dir</span>
+        <span class="n">flux_dir</span> <span class="o">=</span> <span class="n">bckg_dir</span>
+
+        <span class="n">main</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">bckg</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">geom</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">flux</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">parameter_files</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">main_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">main_fn</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">main_fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">main_fn</span><span class="p">)</span>
+
+            <span class="n">main_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">main_dir</span><span class="p">,</span> <span class="n">main_fn</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">main_path</span><span class="p">):</span>
+
+                <span class="n">main</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_create_parameter_file</span><span class="p">(</span><span class="n">main_fn</span><span class="p">,</span>
+                                            <span class="n">main_path</span><span class="p">,</span>
+                                            <span class="s2">&quot;main&quot;</span><span class="p">,</span>
+                                            <span class="n">verbosity</span><span class="p">)</span>
+
+                <span class="n">parameter_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">main</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">bckg_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">bckg_fn</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">bckg_fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">bckg_fn</span><span class="p">)</span>
+
+            <span class="n">bckg_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bckg_dir</span><span class="p">,</span> <span class="n">bckg_fn</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">bckg_path</span><span class="p">):</span>
+
+                <span class="n">bckg</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_create_parameter_file</span><span class="p">(</span><span class="n">bckg_fn</span><span class="p">,</span>
+                                            <span class="n">bckg_path</span><span class="p">,</span>
+                                            <span class="s2">&quot;background&quot;</span><span class="p">,</span>
+                                            <span class="n">verbosity</span><span class="p">)</span>
+
+                <span class="n">parameter_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">bckg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">geom_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">geom_fn</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">geom_fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">geom_fn</span><span class="p">)</span>
+
+            <span class="n">geom_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">geom_dir</span><span class="p">,</span> <span class="n">geom_fn</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">geom_path</span><span class="p">):</span>
+
+                <span class="n">geom</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_create_parameter_file</span><span class="p">(</span><span class="n">geom_fn</span><span class="p">,</span>
+                                            <span class="n">geom_path</span><span class="p">,</span>
+                                            <span class="s2">&quot;geometry&quot;</span><span class="p">,</span>
+                                            <span class="n">verbosity</span><span class="p">)</span>
+
+                <span class="n">parameter_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">flux_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">flux_fn</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">flux_fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">flux_fn</span><span class="p">)</span>
+
+            <span class="n">flux_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">flux_dir</span><span class="p">,</span> <span class="n">flux_fn</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">flux_path</span><span class="p">):</span>
+
+                <span class="n">flux</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_create_parameter_file</span><span class="p">(</span><span class="n">flux_fn</span><span class="p">,</span>
+                                            <span class="n">flux_path</span><span class="p">,</span>
+                                            <span class="s2">&quot;flux&quot;</span><span class="p">,</span>
+                                            <span class="n">verbosity</span><span class="p">)</span>
+
+                <span class="n">parameter_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flux</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">parameter_files</span></div>
+
+<div class="viewcode-block" id="ParameterFile.create_parameter_file"><a class="viewcode-back" href="../parameter_file.html#file.ParameterFile.create_parameter_file">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_parameter_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates a single ParameterFile object depending on the file_type.</span>
+
+<span class="sd">        If the file path given is not a valid file, then it prompts the user</span>
+<span class="sd">        for a new file name. In addition, it gives the user an ouput of valid</span>
+<span class="sd">        files from the list of files found in the appropriate directory for</span>
+<span class="sd">        that parameter file type.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            fn (str): The name of the file</span>
+<span class="sd">            file_path (str): The path to the file</span>
+<span class="sd">            file_type (str): The type of parameter file</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A ParameterFile object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parameter_file</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">file_type</span> <span class="ow">is</span> <span class="s2">&quot;main&quot;</span><span class="p">:</span>
+                <span class="n">parameter_file</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_main_file</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">file_type</span> <span class="ow">is</span> <span class="s2">&quot;background&quot;</span><span class="p">:</span>
+                <span class="n">parameter_file</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_background_file</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">file_type</span> <span class="ow">is</span> <span class="s2">&quot;geometry&quot;</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="k">elif</span> <span class="n">file_type</span> <span class="ow">is</span> <span class="s2">&quot;flux&quot;</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="n">aux</span><span class="o">.</span><span class="n">colorFile</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">aux</span><span class="o">.</span><span class="n">colorDir</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not find </span><span class="si">{}</span><span class="s2"> in </span><span class="si">{}</span><span class="s2">!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">path</span><span class="p">))</span>
+
+            <span class="n">aux</span><span class="o">.</span><span class="n">print_dirContents</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+
+            <span class="n">new_fn</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Please enter a new file or exit [enter]: &quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">new_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">parameter_file</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">create_parameter_file</span><span class="p">(</span><span class="n">new_fn</span><span class="p">,</span>
+                                                    <span class="n">file_path</span><span class="p">,</span>
+                                                    <span class="n">file_type</span><span class="p">,</span>
+                                                    <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">parameter_file</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_main_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class creation method for a main file ParameterFile object.</span>
+
+<span class="sd">        This classmethod abstracts away a lot of the arguments needed</span>
+<span class="sd">        to create a ParameterFile object because it is specifically</span>
+<span class="sd">        designed to create main file type ParameterFile objects.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            fn [str]: name of parameter file</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A main file type ParameterFile object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">params</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="n">ParameterFile</span><span class="o">.</span><span class="n">_empty_main</span><span class="p">(</span><span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="s2">&quot;main&quot;</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_background_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Class creation method for a background file ParameterFile object.</span>
+
+<span class="sd">        This classmethod abstracts away a lot of the arguments needed</span>
+<span class="sd">        to create a ParameterFile object because it is specifically</span>
+<span class="sd">        designed to create background file type ParameterFile objects.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            fn [str]: name of parameter file</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A background file type ParameterFile object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">params</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="n">ParameterFile</span><span class="o">.</span><span class="n">_empty_background</span><span class="p">(</span><span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="s2">&quot;background&quot;</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_geometry_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class creation method for a geometry file ParameterFile object.</span>
+
+<span class="sd">        This classmethod abstracts away a lot of the arguments needed</span>
+<span class="sd">        to create a ParameterFile object because it is specifically</span>
+<span class="sd">        designed to create geometry file type ParameterFile objects.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            fn [str]: name of parameter file</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A geometry file type ParameterFile object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="n">ParameterFile</span><span class="o">.</span><span class="n">_empty_geometry</span><span class="p">(</span><span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_flux_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class creation method for a flux file ParameterFile object.</span>
+
+<span class="sd">        This classmethod abstracts away a lot of the arguments needed</span>
+<span class="sd">        to create a ParameterFile object because it is specifically</span>
+<span class="sd">        designed to create flux file type ParameterFile objects.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            fn [str]: name of parameter file</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A flux file type ParameterFile object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">params</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="n">ParameterFile</span><span class="o">.</span><span class="n">_empty_flux</span><span class="p">(</span><span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="s2">&quot;flux&quot;</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_atom_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Class creation method for a atom file ParameterFile object.</span>
+
+<span class="sd">        This classmethod abstracts away a lot of the arguments needed</span>
+<span class="sd">        to create a ParameterFile object because it is specifically</span>
+<span class="sd">        designed to create atom file type ParameterFile objects.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            fn [str]: name of parameter file</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A atom file type ParameterFile object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">params</span><span class="p">,</span> <span class="n">groups</span> <span class="o">=</span> <span class="n">ParameterFile</span><span class="o">.</span><span class="n">_empty_atomic_data</span><span class="p">(</span><span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="s2">&quot;atomic data&quot;</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_empty_main</span><span class="p">(</span><span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generates parameters dictionary and group for the main ParameterFile object.</span>
+
+<span class="sd">        Initiates every Parameter object that can be found</span>
+<span class="sd">        within a main parameter file by using the classmethods defined</span>
+<span class="sd">        within ./parameters.py. Then organizes them into a dictionary.</span>
+<span class="sd">        Additionally, this creates the nested list of groups required by</span>
+<span class="sd">        ParameterFile objects for the main file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput for all</span>
+<span class="sd">                Parameter objects</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A nested list of groups of main file Parameter object names, and a</span>
+<span class="sd">            dictionary of main file Parameter objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ZERO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+
+        <span class="c1"># M A I N  I O N</span>
+        <span class="n">atomic_weight</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">atomic_weight</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">charge</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">charge</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="c1"># G R I D - F I L E</span>
+        <span class="n">shot</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">shot</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="c1"># G R I D  P O I N T S  A N D  I T E R A T I O N</span>
+        <span class="n">rho</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">rho</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">number_grid_points</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">number_grid_points</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">dr_0</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">dr_0</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">dr_1</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">dr_1</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="c1"># T I M E  S T E P S</span>
+        <span class="n">number_of_changes</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">number_of_changes</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">time</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">dt_start</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">dt_start</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">dt_increase</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">dt_increase</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">steps_per_cycle</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">steps_per_cycle</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="c1"># S T A R T  I M P U R I T Y  E L M E M E N T S</span>
+        <span class="n">number_of_impurities</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">number_of_impurities</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">element</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">element</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">impure_atomic_weight</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">impure_atomic_weight</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">energy_of_neutrals</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">energy_of_neutrals</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="c1"># A N O M A L O U S  T R A N S P O R T</span>
+        <span class="n">d_num_intpln_pts</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">diffusion_num_intpln_pts</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">d_rho_pol_grid</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">diffusion_rho_pol_grid</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">diffusion</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">diffusion</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">v_num_intpln_pts</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">conv_veloc_num_intpln_pts</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">v_rho_pol_grid</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">conv_veloc_rho_pol_grid</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+        <span class="n">convective_velocity</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">convective_velocity</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="n">parameter_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">atomic_weight</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">atomic_weight</span><span class="p">,</span>
+            <span class="n">charge</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">charge</span><span class="p">,</span>
+            <span class="n">shot</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">shot</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">index</span><span class="p">,</span>
+            <span class="n">rho</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">rho</span><span class="p">,</span>
+            <span class="n">number_grid_points</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">number_grid_points</span><span class="p">,</span>
+            <span class="n">dr_0</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">dr_0</span><span class="p">,</span>
+            <span class="n">dr_1</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">dr_1</span><span class="p">,</span>
+            <span class="n">number_of_changes</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">number_of_changes</span><span class="p">,</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">time</span><span class="p">,</span>
+            <span class="n">dt_start</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">dt_start</span><span class="p">,</span>
+            <span class="n">dt_increase</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">dt_increase</span><span class="p">,</span>
+            <span class="n">steps_per_cycle</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">steps_per_cycle</span><span class="p">,</span>
+            <span class="n">number_of_impurities</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">number_of_impurities</span><span class="p">,</span>
+            <span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">element</span><span class="p">,</span>
+            <span class="n">impure_atomic_weight</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">impure_atomic_weight</span><span class="p">,</span>
+            <span class="n">energy_of_neutrals</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">energy_of_neutrals</span><span class="p">,</span>
+            <span class="n">d_num_intpln_pts</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">d_num_intpln_pts</span><span class="p">,</span>
+            <span class="n">d_rho_pol_grid</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">d_rho_pol_grid</span><span class="p">,</span>
+            <span class="n">diffusion</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">diffusion</span><span class="p">,</span>
+            <span class="n">v_num_intpln_pts</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">v_num_intpln_pts</span><span class="p">,</span>
+            <span class="n">v_rho_pol_grid</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">v_rho_pol_grid</span><span class="p">,</span>
+            <span class="n">convective_velocity</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">convective_velocity</span>
+        <span class="p">}</span>
+
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[[</span><span class="n">element</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">impure_atomic_weight</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                   <span class="n">energy_of_neutrals</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
+
+                  <span class="p">[</span><span class="n">time</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dt_start</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dt_increase</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                   <span class="n">steps_per_cycle</span><span class="o">.</span><span class="n">name</span><span class="p">]]</span>
+
+        <span class="k">return</span> <span class="n">parameter_dict</span><span class="p">,</span> <span class="n">groups</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_empty_background</span><span class="p">(</span><span class="n">verbosity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates parameters dictionary and group for the background</span>
+<span class="sd">        ParameterFile object.</span>
+
+<span class="sd">        Initiates every Parameter object that can be found</span>
+<span class="sd">        within a background parameter file by using the classmethods defined</span>
+<span class="sd">        within ./parameters.py. Then organizes them into a dictionary.</span>
+<span class="sd">        Additionally, this creates the nested list of groups required by</span>
+<span class="sd">        ParameterFile objects for the background file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput for all</span>
+<span class="sd">                Parameter objects</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A nested list of groups of background file Parameter object names,</span>
+<span class="sd">            and a dictionary of background file Parameter objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ZERO</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+
+        <span class="n">parameter_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="c1"># &quot;time-vector&quot;: Parameter.ne_numTimePts(ZERO, verbosity),</span>
+            <span class="c1"># &quot;time-vector&quot;: Parameter.ne_timePts(ZERO, verbosity),</span>
+            <span class="c1"># &quot;time-vector&quot;: Parameter.te_numTimePts(ZERO, verbosity),</span>
+            <span class="c1"># &quot;time-vector&quot;: Parameter.te_timePts(ZERO, verbosity),</span>
+            <span class="c1"># &quot;time-vector&quot;: Parameter.ti_numTimePts(ZERO, verbosity),</span>
+            <span class="c1"># &quot;time-vector&quot;: Parameter.ti_timePts(ZERO, verbosity)</span>
+        <span class="p">}</span>
+
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># parameter_dict = (Parameter.ne_numTimePts(ZERO),</span>
+        <span class="c1">#             Parameter.ne_timePts(ZERO),</span>
+        <span class="c1">#             Parameter.ne_paramType(ZERO),</span>
+        <span class="c1">#             Parameter.ne_radCoord(ZERO),</span>
+        <span class="c1">#             Parameter.ne_numInterpPts(ZERO),</span>
+        <span class="c1">#             Parameter.ne_radGrid(ZERO),</span>
+        <span class="c1">#             Parameter.ne_radGridPts(ZERO),</span>
+        <span class="c1">#             Parameter.ne_decayLength(ZERO),</span>
+        <span class="c1">#             Parameter.te_numTimePts(ZERO),</span>
+        <span class="c1">#             Parameter.te_timePts(ZERO),</span>
+        <span class="c1">#             Parameter.te_paramType(ZERO),</span>
+        <span class="c1">#             Parameter.te_radCoord(ZERO),</span>
+        <span class="c1">#             Parameter.te_numInterpPts(ZERO),</span>
+        <span class="c1">#             Parameter.te_radGrid(ZERO),</span>
+        <span class="c1">#             Parameter.te_radGridPts(ZERO),</span>
+        <span class="c1">#             Parameter.te_decayLength(ZERO),</span>
+        <span class="c1">#             Parameter.ti_numTimePts(ZERO),</span>
+        <span class="c1">#             Parameter.ti_timePts(ZERO),</span>
+        <span class="c1">#             Parameter.ti_paramType(ZERO),</span>
+        <span class="c1">#             Parameter.ti_radCoord(ZERO),</span>
+        <span class="c1">#             Parameter.ti_numInterpPts(ZERO),</span>
+        <span class="c1">#             Parameter.ti_radGrid(ZERO),</span>
+        <span class="c1">#             Parameter.ti_radGridPts(ZERO),</span>
+        <span class="c1">#             Parameter.ti_decayLength(ZERO))</span>
+
+        <span class="k">return</span> <span class="n">parameter_dict</span><span class="p">,</span> <span class="n">groups</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_empty_geometry</span><span class="p">(</span><span class="n">verbosity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates parameters dictionary and group for the geometry</span>
+<span class="sd">        ParameterFile object.</span>
+
+<span class="sd">        Initiates every Parameter object that can be found</span>
+<span class="sd">        within a geometry parameter file by using the classmethods defined</span>
+<span class="sd">        within ./parameters.py. Then organizes them into a dictionary.</span>
+<span class="sd">        Additionally, this creates the nested list of groups required by</span>
+<span class="sd">        ParameterFile objects for the geometry file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput for all</span>
+<span class="sd">                Parameter objects</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A nested list of groups of geometry file Parameter object names,</span>
+<span class="sd">            and a dictionary of geometry file Parameter objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_empty_flux</span><span class="p">(</span><span class="n">verbosity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates parameters dictionary and group for the flux</span>
+<span class="sd">        ParameterFile object.</span>
+
+<span class="sd">        Initiates every Parameter object that can be found</span>
+<span class="sd">        within a flux parameter file by using the classmethods defined</span>
+<span class="sd">        within ./parameters.py. Then organizes them into a dictionary.</span>
+<span class="sd">        Additionally, this creates the nested list of groups required by</span>
+<span class="sd">        ParameterFile objects for the flux file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput for all</span>
+<span class="sd">                Parameter objects</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A nested list of groups of flux file Parameter object names,</span>
+<span class="sd">            and a dictionary of flux file Parameter objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_empty_atomic_data</span><span class="p">(</span><span class="n">verbosity</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates parameters dictionary and group for the atomic data</span>
+<span class="sd">        ParameterFile object.</span>
+
+<span class="sd">        Initiates every Parameter object that can be found</span>
+<span class="sd">        within a atomic data parameter file by using the classmethods defined</span>
+<span class="sd">        within ./parameters.py. Then organizes them into a dictionary.</span>
+<span class="sd">        Additionally, this creates the nested list of groups required by</span>
+<span class="sd">        ParameterFile objects for the atomic data file.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput for all</span>
+<span class="sd">                Parameter objects</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A nested list of groups of atomic data file Parameter object names,</span>
+<span class="sd">            and a dictionary of atomic data file Parameter objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="InputFile"><a class="viewcode-back" href="../input_file.html#file.InputFile">[docs]</a><span class="k">class</span> <span class="nc">InputFile</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object ecapsulates the entire state of an input file.</span>
+
+<span class="sd">    A input file is defined as a list of inputs that STRAHL</span>
+<span class="sd">    expects to read in from the parameter files, but instead we</span>
+<span class="sd">    have chosen to give them through an input file.</span>
+
+<span class="sd">    Input files are store in the same directory the STRAHL is executed from.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="InputFile.__init__"><a class="viewcode-back" href="../input_file.html#file.InputFile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inpt_fn</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">overwrite_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes an InputFile object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            inpt_fn (str): The name of the input file</span>
+<span class="sd">            inputs (list: The list of values of the parameters.</span>
+<span class="sd">            overwrite_flag (bool): Determines if the  given input file</span>
+<span class="sd">                will be automatically overwritten. If not boolean, then</span>
+<span class="sd">                the default is False.</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            inputs (list): List of values of the parameters</span>
+<span class="sd">            overwrite_flag (bool): Determines if the  given input file</span>
+<span class="sd">                will be automatically overwritten.</span>
+<span class="sd">            fn (str): The name of the input file</span>
+<span class="sd">            path (str): The path to the input file</span>
+<span class="sd">            verbose (bool): Determines if verbose execution is used</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">inputs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span> <span class="o">=</span> <span class="n">inputs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">overwrite_flag</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">overwrite_flag</span> <span class="o">=</span> <span class="n">overwrite_flag</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">overwrite_flag</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">verbosity</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbosity</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt;&gt; Initialized an InputFile object with attributes: &quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="InputFile.create"><a class="viewcode-back" href="../input_file.html#file.InputFile.create">[docs]</a>    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inpt_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates or loads an input file into the InputFile object.</span>
+
+<span class="sd">        If the user does not given an input file name, then the user is</span>
+<span class="sd">        prompted to give a name. If the input file exists already, and the</span>
+<span class="sd">        overwrite_flag is False, then the user is prompted to confirm</span>
+<span class="sd">        overwriting of the input file. Once this is confirmed the entire</span>
+<span class="sd">        file will be emptied. If the user elects to not overwrite the file,</span>
+<span class="sd">        then they are prompted to input a new file name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            inpt_fn (str): The input file name.</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            fn (str): The input file name.</span>
+<span class="sd">            path (str): The path to the input file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating an input file object and input file&quot;</span><span class="p">)</span>
+
+        <span class="n">new_inpt_prompt</span> <span class="o">=</span> <span class="s2">&quot;Please enter a new input file or exit [enter]? &quot;</span>
+
+        <span class="k">if</span> <span class="n">inpt_fn</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">inpt_fn</span> <span class="ow">is</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">inpt_fn</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">new_inpt_prompt</span><span class="p">)</span>
+
+        <span class="c1"># Checks if the file exists already and if so gives the user</span>
+        <span class="c1"># the option to overwrite it; otherwise, it generates a new file</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">overwrite_flag</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: The file </span><span class="si">{}</span><span class="s2"> already exists.&quot;</span>
+                      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aux</span><span class="o">.</span><span class="n">colorFile</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">)))</span>
+
+                <span class="n">overwrite</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Would you like to overwrite </span><span class="si">{}</span><span class="s2"> [Y/N]: &quot;</span>
+                                  <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">aux</span><span class="o">.</span><span class="n">colorFile</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">)))</span>
+
+                <span class="k">if</span> <span class="n">overwrite</span> <span class="ow">is</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Exiting&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;(n|N)&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">):</span>
+                    <span class="n">aux</span><span class="o">.</span><span class="n">print_dirContents</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">)</span>
+
+                    <span class="n">inpt_fn</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">new_inpt_prompt</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">inpt_fn</span> <span class="ow">is</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Exiting&quot;</span><span class="p">)</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">)</span>
+
+                <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;(y|Y)&quot;</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">):</span>
+                    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">truncate</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Automatically overwriting </span><span class="si">{}</span><span class="s2">...&quot;</span>
+                          <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">))</span>
+
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">truncate</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inpt_fn</span> <span class="ow">is</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Exiting&quot;</span><span class="p">)</span>
+
+        <span class="n">mkfileCmd</span> <span class="o">=</span> <span class="s2">&quot;touch </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">)</span>
+        <span class="n">sub</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">mkfileCmd</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+        <span class="n">fn</span> <span class="o">=</span> <span class="n">inpt_fn</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">,</span> <span class="n">inpt_fn</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fn</span><span class="p">,</span> <span class="n">path</span></div>
+
+<div class="viewcode-block" id="InputFile.attributes"><a class="viewcode-back" href="../input_file.html#file.InputFile.attributes">[docs]</a>    <span class="k">def</span> <span class="nf">attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prints all of the attributes of the InputFile object&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Printing attributes ...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Attributes of </span><span class="si">{}</span><span class="s2"> object </span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SummaryFile"><a class="viewcode-back" href="../summary_file.html#file.SummaryFile">[docs]</a><span class="k">class</span> <span class="nc">SummaryFile</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object encapsulates the entire state of the summary file.</span>
+
+<span class="sd">    A summary file is where we store the object attributes by</span>
+<span class="sd">    serializing them.</span>
+
+<span class="sd">    Summary files are stores in ./summaries.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SummaryFile.__init__"><a class="viewcode-back" href="../summary_file.html#file.SummaryFile.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sum_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializes a SummaryFile object</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            sum_fn (str): The summary file name</span>
+<span class="sd">            verbosity (bool): Turns on and off verbose ouput</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            verbose (bool): Determines if verbose execution is used</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">verbosity</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbosity</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; Initialized a SummaryFile object with attributes: &quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">serial</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">sum_fn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SummaryFile.create"><a class="viewcode-back" href="../summary_file.html#file.SummaryFile.create">[docs]</a>    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sum_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates or loads a summary file</span>
+
+<span class="sd">        If a summary file name is not provided then the user is prompted for one</span>
+<span class="sd">        and the files inside of ./summaries is provided for reference. The summary</span>
+<span class="sd">        file name must also end in either .json or .hdf5 in order to be created</span>
+<span class="sd">        and compatible with serialization techniques implemented.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            sum_fn (str): The summary file name.</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            fn (str): The input file name.</span>
+<span class="sd">            path (str): The path to the input file.</span>
+<span class="sd">            serial (str): The type of serialization for this summary file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating an summary file object and summary file&quot;</span><span class="p">)</span>
+
+        <span class="c1"># If sum_fn is not given, then we request the user</span>
+        <span class="n">sum_fn_prompt</span> <span class="o">=</span> <span class="s2">&quot;Please input a valid summary file or exit [enter]: &quot;</span>
+        <span class="k">if</span> <span class="n">sum_fn</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">sum_fn</span> <span class="ow">is</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">aux</span><span class="o">.</span><span class="n">print_dirContents</span><span class="p">(</span><span class="s2">&quot;./summaries&quot;</span><span class="p">)</span>
+
+            <span class="n">sum_fn</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">sum_fn_prompt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">sum_fn</span> <span class="ow">is</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Exiting&quot;</span><span class="p">)</span>
+
+        <span class="n">serial</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">.(json|hdf5)&quot;</span><span class="p">,</span> <span class="n">sum_fn</span><span class="p">)</span>
+
+        <span class="c1"># If serial cannot be found or is not of the correct type</span>
+        <span class="c1"># Then it request the user for a proper file name</span>
+        <span class="k">if</span> <span class="n">serial</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sum_fn</span><span class="p">))</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Your file name must end in .json or .hdf5.&quot;</span><span class="p">)</span>
+
+            <span class="n">sum_fn</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter a new file name or exit [enter]: &quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">serial</span> <span class="ow">is</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Exiting&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">sum_fn</span><span class="p">)</span>
+
+        <span class="n">path_to_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">,</span> <span class="s2">&quot;summaries&quot;</span><span class="p">,</span> <span class="n">sum_fn</span><span class="p">)</span>
+
+        <span class="c1"># If this summary file does not exist, create it.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">):</span>
+
+            <span class="n">mkFileCmd</span> <span class="o">=</span> <span class="s2">&quot;touch </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span>
+
+            <span class="n">sub</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">mkFileCmd</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="n">sum_fn</span>
+        <span class="n">serial</span> <span class="o">=</span> <span class="n">serial</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">fn</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">serial</span></div>
+
+<div class="viewcode-block" id="SummaryFile.attributes"><a class="viewcode-back" href="../summary_file.html#file.SummaryFile.attributes">[docs]</a>    <span class="k">def</span> <span class="nf">attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prints out all of the attributes of the SummaryFile object&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Printing attributes ...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Attributes of </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span></div></div>
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">strahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Joshua Swerdlow.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

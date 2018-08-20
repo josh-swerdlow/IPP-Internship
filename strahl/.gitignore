@@ -3,5 +3,8 @@ __pycache__
 ./deprecated
 ./docs
 peter_chisquaredfitter.py
-toy_model.py
+./nete/**
+./param_files/**
+./summaries/**
+./result/**
 

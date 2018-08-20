@@ -1,11 +1,11 @@
 import sys
 
-import strahl
 import numpy as np
 import matplotlib.pyplot as plt
 
-from data import Splines, Residual
-from models import Least_Square, Markov_Chain_Monte_Carlo
+from PyStrahl.core import strahl
+from PyStrahl.analysis.models import Least_Square
+from PyStrahl.analysis.data import Splines, Residual
 
 # G E N E R A T E  E X P E R I M E N T A L  S I G N A L
 print("G E N E R A T E  E X P E R I M E N T A L  S I G N A L")

@@ -1,0 +1,146 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>File Objects &#8212; strahl 1.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ParameterFile Object" href="parameter_file.html" />
+    <link rel="prev" title="Parameter Objects" href="parameters.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="parameter_file.html" title="ParameterFile Object"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="parameters.html" title="Parameter Objects"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">strahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="strahl.html" accesskey="U">STRAHL Wrapper</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="file-objects">
+<h1>File Objects<a class="headerlink" href="#file-objects" title="Permalink to this headline">¶</a></h1>
+<p>There are three types of File objects in this code: ParameterFile, InputFile, and SummaryFile. Each one of them represents the state of the actual file they represent.
+In the case of ParameterFile, it can represent a main file, geometry file, or background file depending on initialization.</p>
+<p>The File object stores the data structures that describe the state of the actual file; as well, as storing methods that create, interact, or load the actual file. For example, a ParameterFile object will have a dictionary of Parameter objects key with the Parameter object's name. An InputFile object will have a list of inputs that are expected to be placed in the input file. In all cases the object will have file name attributes (fn), and sometimes other metadata to describe the object.</p>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Classes within file.py</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="parameter_file.html">ParameterFile Object</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="parameter_file.html#summary"><strong>Summary</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_file.html#current-status"><strong>Current Status</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_file.html#future-work"><strong>Future Work</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="parameter_file.html#known-bugs"><strong>Known Bugs</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="input_file.html">InputFile Object</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="input_file.html#summary"><strong>Summary</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_file.html#current-status"><strong>Current Status</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_file.html#future-work"><strong>Future Work</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="input_file.html#known-bugs"><strong>Known Bugs</strong></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="summary_file.html">SummaryFile Object</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="summary_file.html#summary"><strong>Summary</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="summary_file.html#current-status"><strong>Current Status</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="summary_file.html#future-work"><strong>Future Work</strong></a></li>
+<li class="toctree-l2"><a class="reference internal" href="summary_file.html#known-bugs"><strong>Known Bugs</strong></a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="parameters.html"
+                        title="previous chapter">Parameter Objects</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="parameter_file.html"
+                        title="next chapter">ParameterFile Object</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/file.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="parameter_file.html" title="ParameterFile Object"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="parameters.html" title="Parameter Objects"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">strahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="strahl.html" >STRAHL Wrapper</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Joshua Swerdlow.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

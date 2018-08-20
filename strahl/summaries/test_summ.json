@@ -1,0 +1,156 @@
+{
+    "main": {
+        "fn": "op12a_171122022_FeLBO3_experimental_signal",
+        "parameter_dict": {
+            "atomic weight": {
+                "name": "atomic weight",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "charge": {
+                "name": "charge",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "shot": {
+                "name": "shot",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "index": {
+                "name": "index",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "rho": {
+                "name": "rho",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "number of grid points": {
+                "name": "number of grid points",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "dr_0": {
+                "name": "dr_0",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "dr_1": {
+                "name": "dr_1",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "number of changes (start-time+... +stop-time)": {
+                "name": "number of changes (start-time+... +stop-time)",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "time": {
+                "name": "time",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "dt at start": {
+                "name": "dt at start",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "increase of dt after cycle": {
+                "name": "increase of dt after cycle",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "steps per cycle": {
+                "name": "steps per cycle",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "number of impurities": {
+                "name": "number of impurities",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "element": {
+                "name": "element",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "impure atomic weight": {
+                "name": "impure atomic weight",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "energy of neutrals(eV)": {
+                "name": "energy of neutrals(eV)",
+                "value": [
+                    0.0
+                ],
+                "state": false
+            },
+            "# of D interpolation points": {
+                "name": "# of D interpolation points",
+                "value": 5,
+                "state": true
+            },
+            "rho polodial grid for D interpolation": {
+                "name": "rho polodial grid for D interpolation",
+                "value": 4,
+                "state": true
+            },
+            "D[m^2/s]": {
+                "name": "D[m^2/s]",
+                "value": 2,
+                "state": true
+            },
+            "# of v interpolation points": {
+                "name": "# of v interpolation points",
+                "value": 5,
+                "state": true
+            },
+            "rho polodial grid for v interpolation": {
+                "name": "rho polodial grid for v interpolation",
+                "value": 3,
+                "state": true
+            },
+            "v[m/s]": {
+                "name": "v[m/s]",
+                "value": 4,
+                "state": true
+            }
+        }
+    }
+}

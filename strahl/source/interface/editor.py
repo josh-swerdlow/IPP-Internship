@@ -1,23 +1,16 @@
 ########################################
-# File name: parameters.py             #
+# File name: editor.py                 #
 # Author: Joshua Swerdow               #
 # Date created: 5/20/2018              #
-# Date last modified:                  #
+# Date last modified: 8/20/2018        #
 # Python Version: 3.0+                 #
 ########################################
 
 """
-Summary: Stores the file, parameter file, input file, and
-    summary file editor classes. These generally order
-    information and functions that create, interact, or
-    load the parameter, input, or summary objects.
-
-To Do:
-    Comment code!
-    fileEditor - [x]
-    ParameterFileEditor - [x]
-    SummaryFileEditor - [x]
-    InputFileEditor - []
+Stores the file, parameter file, input file, and
+summary file editor classes. These generally order
+information and functions that create, interact, or
+load the parameter, input, or summary objects.
 """
 
 __author__ = 'Joshua Swerdow'
@@ -26,22 +19,21 @@ import os
 import re
 import sys
 import json
-
+import query
 
 import numpy as np
 import subprocess as sub
-import source.interface.query as query
 
-from source.interface.file import ParameterFile, InputFile, SummaryFile
+from file import ParameterFile, InputFile, SummaryFile
 
 
 class FileEditor():
     """
-    Summary: This object wraps around the standard Python file object
+    This object wraps around the standard Python file object
     to add further functionality specific for reading and writing
-    to parameter files.
+    to STRAHL parameter files.
 
-    To Do:
+    .. :to do:
         Figure out back up files?
         No verbose output at the moment
     """
@@ -50,14 +42,14 @@ class FileEditor():
         """
         Initializes the FileEditor object.
 
-        Parameters:
-            * **file** [str]: the name of the file to be opened.
+        Args:
+            file (str): The name of the file to be opened.
 
         Attributes:
-            * **fn** [str]: the name of the file opened.
-            * **_deletions** [int|0]: the current number of
-                deletions performed for use in backup file.
-            * **_line** [int|0]: the current line number.
+            fn (str) The name of the file opened.
+            _deletions (int): The current number of deletions performed
+                for use in backup file.
+            _line (int): The current line number.
         """
         self.fn = fn
         self._deletions = 0
@@ -73,12 +65,13 @@ class FileEditor():
         file object.
 
         Parameters:
-            * **read_write_attribute** [str|"r+"]: sets the
-                read and write abilities of the file object.
-            * **buffer_time**[int|1]: sets the buffer time.
+            read_write_attribute (str): Sets the read and write
+                abilities of the file object.
+            buffer_time (int): Sets the buffer time.
 
         Attributes:
-            * **file** [file obj]: a file object
+            file (:obj:`file`): A file object
+
         """
 
         self.file = open(self.fn, read_write_attribute)
@@ -385,36 +378,6 @@ class ParameterFileEditor(FileEditor, ParameterFile):
                                            verbosity)
 
                     parameter_editors[index] = editor
-
-        # if bckg_fn is not "":
-        #     bckg_path = os.path.join(bckg_dir, bckg_fn)
-        #     if os.path.isfile(bckg_path):
-
-        #         bckg = cls.bckg_editor(bckg_fn,
-        #                                bckg_path,
-        #                                verbosity)
-
-        #         parameter_editors[1] = bckg
-
-        # if geom_fn is not "":
-        #     geom_path = os.path.join(geom_dir, geom_fn)
-        #     if os.path.isfile(geom_path):
-
-        #         geom = cls.geom_editor(geom_fn,
-        #                                geom_path,
-        #                                verbosity)
-
-        #         parameter_editors[2] = geom
-
-        # if flux_fn is not "":
-        #     flux_path = os.path.join(flux_dir, flux_fn)
-        #     if os.path.isfile(flux_path):
-
-        #         flux = cls.flux_editor(flux_fn,
-        #                                flux_path,
-        #                                verbosity)
-
-        #         parameter_editors[3] = flux
 
         return parameter_editors
 
@@ -820,13 +783,17 @@ class SummaryFileEditor(SummaryFile):
 
 class InputFileEditor(InputFile):
 
-    def __init__(self, inpt_fn=None, inputs=None, verbosity=False):
+    def __init__(self, inpt_fn=None, inputs=None,
+                overwrite_flag=False, verbosity=False):
         """
         Initializes an InputFileEditor object
 
         Parameters:
             * **inpt_fn** [str|None]: The input file name.
             * **inputs** [list|None]: the list of values of the parameters
+            * **overwrite_flag** [bool|False]: flag that determined if the
+                given input file will be automatically overwritten or
+                if the user will be prompted first.
             * **verbosity** [bool|False]: turns on and off verbose
                 ouput.
 
@@ -834,7 +801,9 @@ class InputFileEditor(InputFile):
             * **verbose** [bool|False]: determines if verbose
                 execution is used.
         """
-        super().__init__(inpt_fn, inputs, verbosity=verbosity)
+        super().__init__(inpt_fn, inputs=inputs,
+                         overwrite_flag=overwrite_flag,
+                         verbosity=verbosity)
 
         self.verbose = verbosity
         if self.verbose:
@@ -954,7 +923,6 @@ class InputFileEditor(InputFile):
                     while inpt.ndim < 2:
                         shape.append(1)
                         inpt = np.expand_dims(inpt, 0)
-                        print(inpt)
 
                     cols = shape[0]
                     rows = shape[1]

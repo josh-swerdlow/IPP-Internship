@@ -1,0 +1,346 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Editor Objects &#8212; strahl 1.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="query module" href="query.html" />
+    <link rel="prev" title="SummaryFile Object" href="summary_file.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="query.html" title="query module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="summary_file.html" title="SummaryFile Object"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">strahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="strahl.html" accesskey="U">STRAHL Wrapper</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="editor-objects">
+<h1>Editor Objects<a class="headerlink" href="#editor-objects" title="Permalink to this headline">¶</a></h1>
+<p>There are thre</p>
+<span class="target" id="module-editor"></span><dl class="class">
+<dt id="editor.FileEditor">
+<em class="property">class </em><code class="descclassname">editor.</code><code class="descname">FileEditor</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor" title="Permalink to this definition">¶</a></dt>
+<dd><p>This object wraps around the standard Python file object
+to add further functionality specific for reading and writing
+to STRAHL parameter files.</p>
+<dl class="docutils">
+<dt>To Do:</dt>
+<dd>Figure out back up files?
+No verbose output at the moment</dd>
+</dl>
+<dl class="method">
+<dt id="editor.FileEditor.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes the FileEditor object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>file</strong> (<em>str</em>) -- The name of the file to be opened.</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="editor.FileEditor.fn">
+<code class="descname">fn</code><a class="headerlink" href="#editor.FileEditor.fn" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="editor.FileEditor._deletions">
+<code class="descname">_deletions</code><a class="headerlink" href="#editor.FileEditor._deletions" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> -- The current number of deletions performed
+for use in backup file.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="editor.FileEditor._line">
+<code class="descname">_line</code><a class="headerlink" href="#editor.FileEditor._line" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> -- The current line number.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.open_file">
+<code class="descname">open_file</code><span class="sig-paren">(</span><em>read_write_attribute='r+'</em>, <em>buffer_time=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.open_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.open_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens the given file and creates a file standard Python
+file object.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>read_write_attribute</strong> (<em>str</em>) -- Sets the read and write
+abilities of the file object.</li>
+<li><strong>buffer_time</strong> (<em>int</em>) -- Sets the buffer time.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt id="editor.FileEditor.file">
+<code class="descname">file</code><a class="headerlink" href="#editor.FileEditor.file" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference internal" href="summary_file.html#module-file" title="file"><code class="xref py py-obj docutils literal"><span class="pre">file</span></code></a> -- A file object</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.read_char">
+<code class="descname">read_char</code><span class="sig-paren">(</span><em>n=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.read_char"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.read_char" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns n characters read from the buffer and keeps track
+of the current line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong><strong> [</strong><strong>int|1</strong><strong>]</strong> (<em>*</em>) -- number of characters to be read</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">OSError</span></code> -- If the file object is not readable</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Note: This should be used to capture select words from a</dt>
+<dd>setence, rather than read line or lines. For that use
+FileEditor.readline().</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.read_lines">
+<code class="descname">read_lines</code><span class="sig-paren">(</span><em>n=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.read_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.read_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the line read from the buffer and keeps track of
+the current line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong><strong> [</strong><strong>int|1</strong><strong>]</strong> (<em>*</em>) -- The number of lines to read</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">OSError</span></code> -- If the file object is not readable.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.cur_loc">
+<code class="descname">cur_loc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.cur_loc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.cur_loc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the current location in the form of the current
+character and the current line.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">OSError</span></code> -- If the file object is not seekable</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.move">
+<code class="descname">move</code><span class="sig-paren">(</span><em>loc=(0</em>, <em>0)</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.move"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.move" title="Permalink to this definition">¶</a></dt>
+<dd><p>Resets the buffer to the specified location relative to the
+begining of the buffer and resets the line attribute to the
+line at the reset location.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>loc</strong><strong> [</strong><strong>tuple of int|</strong> (<em>*</em>) -- the location to move to</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">OSError</span></code> -- If the file object is not seekable</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.peak">
+<code class="descname">peak</code><span class="sig-paren">(</span><em>n=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.peak"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.peak" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads n characters read from the buffer, but returns
+to the initial location.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong><strong> [</strong><strong>int|1</strong><strong>]</strong> (<em>*</em>) -- the number of characters to read</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The characters read from the file.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">chars</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.peak_lines">
+<code class="descname">peak_lines</code><span class="sig-paren">(</span><em>n=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.peak_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.peak_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads until a newline is found or EOF, but returns to the
+initial location.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>n</strong><strong> [</strong><strong>int|1</strong><strong>]</strong> (<em>*</em>) -- the number of lines to read</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The lines read from the file.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">line</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.update">
+<code class="descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Updates the buffer immediately</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>addition</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given addition to the file at the current location.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>addition</strong><strong> [</strong><strong>str</strong><strong>]</strong> (<em>*</em>) -- The addition to be added to the file.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">OSError</span></code> -- If the file is not writable.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>deletion=''</em>, <em>replacement=''</em>, <em>line=0</em>, <em>repeat=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the given deletion phrase or by default a single line.
+The previous file is always saved into a folder called ./_backup.</p>
+<dl class="docutils">
+<dt>Paramaters:</dt>
+<dd><ul class="first last simple">
+<li><strong>deletion</strong> [str|&quot;&quot;]: The string to be deleted.</li>
+<li><strong>replacement</strong> [str|&quot;&quot;]: The string to be replaced</li>
+<li><strong>line</strong> [int|0]: The number of lines to be deleted</li>
+<li><strong>repeat</strong> [int|1]: The numbe of repeations</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="editor.FileEditor.close_file">
+<code class="descname">close_file</code><span class="sig-paren">(</span><em>clean=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/editor.html#FileEditor.close_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#editor.FileEditor.close_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Closes the file and by default deletes the
+backups for this file in the folder ./_backup</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="summary_file.html"
+                        title="previous chapter">SummaryFile Object</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="query.html"
+                        title="next chapter">query module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/editor.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="query.html" title="query module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="summary_file.html" title="SummaryFile Object"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">strahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="strahl.html" >STRAHL Wrapper</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Joshua Swerdlow.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

@@ -8,12 +8,9 @@
 
 """
 Summary: Stores the parameter, input, and summary file classes
-    which are used to order information and functions that
+    which are used to order information and methods that
     create, interact, or load the parameter, input, or summary
     files.
-
-To Do:
-
 """
 
 __author__ = 'Joshua Swerdow'
@@ -23,10 +20,10 @@ import re
 import sys
 
 import numpy as np
-import source.interface.auxillary as aux
+import auxillary as aux
 import subprocess as sub
 
-from source.interface.parameters import Parameter
+from parameters import Parameter
 
 
 class ParameterFile():
@@ -38,45 +35,61 @@ class ParameterFile():
 
     Each file has a different file name syntax and storage location. Please
     see the STRAHL manual for more information.
-        ./param: main files, atomic data
-        ./nete: background, geometry, flux
+        * ./param: main files, atomic data
+        * ./nete: background, geometry, flux
     """
 
-    def __init__(self, type_, fn, priority, params, groups, verbosity):
+    def __init__(self, param_type, fn, priority,
+                 params=None, groups=None,
+                 verbosity=False):
         """
-        Initiatlization method to create a ParameterFile object
+        Initiatlizes a ParameterFile object.
 
-        Parameters:
-            * **type** [str]: Main, background, geometry, flux, atomic_data
-            * **fn** [str]: File name
-            * **priority** [int]: The priority of the parameter file in the
+        Args:
+            param_type (str): The type of parameter file which is being created
+                i.e) 'main', 'background', 'geometry', 'flux', 'atomic_data'
+            fn (str): The file's name
+            priority (int): The priority of the parameter file in the
                 input file.
-            * **params** [dict]: Dictionary of initialized parameter objects
+            params (dict): Dictionary of initialized Parameter objects
                 with associated names.
-            * **verbosity** [bool]: turns on and off verbose ouput
+            groups (list): Nested lists of parameter object names which are
+                found together on a single line.
+            verbosity (bool): Turns on and off verbose ouput
 
         Attributes:
-            * **type** [str]: Main, background, geometry, flux, atomic_data
-            * **fn** [str]: File name
-            * **priority** [int]: The priority of the parameter file in the
+            type (str): 'main', 'background', 'geometry', 'flux', 'atomic_data'
+            fn (str): The files name
+            priority (int): The priority of the parameter file in the
                 input file.
-            * **parameter_dict** [dict]: Dictionary of initialized parameter objects
+            parameter_dict (dict): Dictionary of initialized parameter objects
                 with associated names.
-            * **verbose** [bool]: determines if verbose execution is used
+            size (int): Size of the parameter_dict
+            groups (list): Allows code to search for groups of parameters
+                rather than just single parameters.
+                For more detail, see manual.
+            verbose (bool): Determines if verbose execution is used
         """
 
-        self.type = type_
+        self.type = param_type
         self.fn = fn
         self.priority = priority
+
+        if params is None:
+            sys.exit("Error: params is NoneType.")
         self.parameter_dict = params
+
         self.size = len(params)
+
+        if groups is None:
+            sys.exit("groups is NoneType.")
         self.groups = groups
 
         if isinstance(verbosity, bool):
             self.verbose = verbosity
 
             if self.verbose:
-                print(">>>>>Initialized a ParameterFile object with attributes: ")
+                print(">>> Initialized a ParameterFile object with attributes:")
                 print(self.attributes(True))
         else:
             self.verbose = False
@@ -85,10 +98,10 @@ class ParameterFile():
         """
         Prints out all of the attributes of the parmeterFile object
 
-        Parameters:
-            * **all** [bool | False]: Determines whether to recursively call
-            parameters.attributes() on each parameter object in
-            paramaterFile.parameter_dict
+        Args:
+            all (bool): Determines whether to recursively call
+                parameters.attributes() on each parameter object in
+                paramaterFile.parameter_dict
 
         """
         if self.verbose:
@@ -99,15 +112,14 @@ class ParameterFile():
         print(self.__dict__)
 
         # Iteratively calls the attributes method on parameters
-        # with a list comprehension
         if all:
             [param.attributes() for param in self.parameter_dict.values()
                 if isinstance(param, Parameter)]
 
     def reset_states(self):
         """
-        Iteratively resets all the states for each parameter object
-        found in the ParameterFile objects parameter_dict attribute.
+        Iteratively resets all the states for each Parameter object
+        found in the ParameterFile's parameter_dict attribute.
         """
 
         if self.verbose:
@@ -121,18 +133,24 @@ class ParameterFile():
         Recursively generates nested dictionaries of the attributes of the
         ParameterFile object.
 
-        Parameters:
-            * **keys** [list|None]: A list of attribute names from the
+        Args:
+            keys (list): A list of attribute names from the
                 ParameterFile object that you would like to have in the
-                dictionary.
-            * **param_keys** [list|None]: A list of attribute names from
+                dictionary. If not given, it will assume all of the keys
+                of the dic object.
+            param_keys (list): A list of attribute names from
                 the parameter object that you would like to have in the
-                dictionary.
+                dictionary. If not given
+
+            dic (dict): A dictionary object to operate on (presumably a
+                ParameterFile's params_dict). If not given, it will assume
+                the object __dict__ is the appropriate dictionary.
 
         Returns:
-            * **attributes** [dic]: Nested dictionary of all attriutes
-                request by the user from the ParameterFile object
-                and the parameters objects within.
+            A Nested dictionary of all attributes requested by the user
+            from the ParameterFile object and the parameters objects
+            within. Note: This will turn any np.ndarray instance into a
+            standard Python list instances.
         """
         if dic is None or not isinstance(dic, dict):
             obj = self
@@ -153,10 +171,6 @@ class ParameterFile():
             print("Grabbing the following attributes:")
             print(keys)
 
-        # Iteratively checks the values to see if it is a
-        #   dictionary object: recurses into the dict object
-        #   parameter object: calls the parameter.attribute_dictionary() method
-        #   numpy array object: turns it into a python standard list
         for key in keys:
             val = dic[key]
 
@@ -176,8 +190,12 @@ class ParameterFile():
 
     def change_value(self, param, val):
         """
-        Changes the value for the parameters object to val
-        using the parameters.change_val() method.
+        Changes the value for the parameters object to val using the
+        parameters.change_val() method.
+
+        Args:
+            param (:obj:`Parameter`): A Parameter object to operate on
+            val: A value(s) to be assigned to the param Parameter object.
         """
         if param is None:
             sys.exit("Error: param is None.")
@@ -200,22 +218,20 @@ class ParameterFile():
                        geom_fn=None,
                        flux_fn=None,
                        verbosity=False):
-        """
-        Loads multiple parameter file objects depending on the file_names.
-        Only accepts one file_name of each file_type and only accepts
-        file_type in the following order: main, background, geometry, flux.
+        """Creates multiple parameter file objects depending on the file_names.
 
-        Parameters:
-            * **main_fn** [str|None]: main file name
-            * **bckg_fn** [str|None]: background file name
-            * **geom_fn** [str|None]: geometry file name
-            * **flux_fn** [str|None]: flux file name
-            * **verbosity** [bool|False]: turns on and off verbose ouput
+        Args:
+            main_fn (str): A main file name
+            bckg_fn (str): A background file name
+            geom_fn (str): A geometry file name
+            flux_fn (str): A flux file name
+            verbosity (bool): Turns on and off verbose ouput
 
         Returns:
-            A list of parameter objects for the file names given in order
-            of main, bckg, geom, flux. Returns an empty list if no file
-             names are given.
+            A list of ParameterFile objects for the file names given in order
+            of main, bckg, geom, flux. Does not return anything if a file name
+            for the parameter file type is not given. Returns an empty list if
+            no file names are given.
         """
         main_dir = "param_files"
         bckg_dir = "nete"
@@ -293,17 +309,21 @@ class ParameterFile():
 
     @classmethod
     def create_parameter_file(cls, fn, file_path, file_type, verbosity):
-        """
-        Loads a single parameter file object depending on the file_type
-        and the fn.
+        """Creates a single ParameterFile object depending on the file_type.
+
+        If the file path given is not a valid file, then it prompts the user
+        for a new file name. In addition, it gives the user an ouput of valid
+        files from the list of files found in the appropriate directory for
+        that parameter file type.
 
         Parameters:
-            * **fn** [str]: The name of the file
-            * **file_path** [str]: The path to the file
-            * **file_type** [str]: The type of parameter file
+            fn (str): The name of the file
+            file_path (str): The path to the file
+            file_type (str): The type of parameter file
+            verbosity (bool): Turns on and off verbose ouput
 
         Returns:
-            A ParameterFile object
+            A ParameterFile object.
         """
         parameter_file = None
 
@@ -337,14 +357,18 @@ class ParameterFile():
 
     @classmethod
     def _main_file(cls, fn, verbosity):
-        """
-        Class creation method for a main file ParameterFile object.
+        """Class creation method for a main file ParameterFile object.
+
+        This classmethod abstracts away a lot of the arguments needed
+        to create a ParameterFile object because it is specifically
+        designed to create main file type ParameterFile objects.
 
         Parameters:
-            * **fn** [str]: name of parameter file
+            fn [str]: name of parameter file
+            verbosity (bool): Turns on and off verbose ouput
 
         Returns:
-            * ParameterFile object for the given type of parameter file
+            A main file type ParameterFile object.
         """
 
         params, groups = ParameterFile._empty_main(verbosity)
@@ -356,11 +380,16 @@ class ParameterFile():
         """
         Class creation method for a background file ParameterFile object.
 
+        This classmethod abstracts away a lot of the arguments needed
+        to create a ParameterFile object because it is specifically
+        designed to create background file type ParameterFile objects.
+
         Parameters:
-            * **fn** [str]: name of parameter file
+            fn [str]: name of parameter file
+            verbosity (bool): Turns on and off verbose ouput
 
         Returns:
-            * ParameterFile object for the given type of parameter file
+            A background file type ParameterFile object.
         """
 
         params, groups = ParameterFile._empty_background(verbosity)
@@ -369,14 +398,18 @@ class ParameterFile():
 
     @classmethod
     def _geometry_file(cls, fn, verbosity):
-        """
-        Class creation method for a geometry file
+        """Class creation method for a geometry file ParameterFile object.
+
+        This classmethod abstracts away a lot of the arguments needed
+        to create a ParameterFile object because it is specifically
+        designed to create geometry file type ParameterFile objects.
 
         Parameters:
-            * **fn** [str]: name of parameter file
+            fn [str]: name of parameter file
+            verbosity (bool): Turns on and off verbose ouput
 
         Returns:
-            * ParameterFile object for the given type of parameter file
+            A geometry file type ParameterFile object.
         """
         params, groups = ParameterFile._empty_geometry(verbosity)
 
@@ -384,14 +417,18 @@ class ParameterFile():
 
     @classmethod
     def _flux_file(cls, fn, verbosity):
-        """
-        Class creation method for a flux file
+        """Class creation method for a flux file ParameterFile object.
+
+        This classmethod abstracts away a lot of the arguments needed
+        to create a ParameterFile object because it is specifically
+        designed to create flux file type ParameterFile objects.
 
         Parameters:
-            * **fn** [str]: name of parameter file
+            fn [str]: name of parameter file
+            verbosity (bool): Turns on and off verbose ouput
 
         Returns:
-            * ParameterFile object for the given type of parameter file
+            A flux file type ParameterFile object.
         """
         params, groups = ParameterFile._empty_flux(verbosity)
 
@@ -399,14 +436,18 @@ class ParameterFile():
 
     @classmethod
     def _atom_file(cls, fn, verbosity):
-        """
-        Class creation method for a atomic data file ParameterFile object.
+        """Class creation method for a atom file ParameterFile object.
+
+        This classmethod abstracts away a lot of the arguments needed
+        to create a ParameterFile object because it is specifically
+        designed to create atom file type ParameterFile objects.
 
         Parameters:
-            * **fn** [str]: name of parameter file
+            fn [str]: name of parameter file
+            verbosity (bool): Turns on and off verbose ouput
 
         Returns:
-            * ParameterFile object for the given type of parameter file
+            A atom file type ParameterFile object.
         """
 
         params, groups = ParameterFile._empty_atomic_data(verbosity)
@@ -414,27 +455,34 @@ class ParameterFile():
         return cls("atomic data", fn, 2, params, groups, verbosity)
 
     @staticmethod
-    def _empty_main(verbosity):
-        """
-        Generates a dictionary of all the main file Parameter
-        objects initialized
+    def _empty_main(verbosity=False):
+        """Generates parameters dictionary and group for the main ParameterFile object.
 
-        Parameters:
-            * **verbosity** [bool]: turns on and off verbose ouput
-                for all Parameter objects
+        Initiates every Parameter object that can be found
+        within a main parameter file by using the classmethods defined
+        within ./parameters.py. Then organizes them into a dictionary.
+        Additionally, this creates the nested list of groups required by
+        ParameterFile objects for the main file.
+
+        Args:
+            verbosity (bool): Turns on and off verbose ouput for all
+                Parameter objects
 
         Returns:
-            * **parameter_dict** [dict]: dictionary of main file Parameter
-                obj
+            A nested list of groups of main file Parameter object names, and a
+            dictionary of main file Parameter objects.
         """
         ZERO = np.array([0], dtype=np.float)
 
+        # M A I N  I O N
         atomic_weight = Parameter.atomic_weight(ZERO, verbosity)
         charge = Parameter.charge(ZERO, verbosity)
 
+        # G R I D - F I L E
         shot = Parameter.shot(ZERO, verbosity)
         index = Parameter.index(ZERO, verbosity)
 
+        # G R I D  P O I N T S  A N D  I T E R A T I O N
         rho = Parameter.rho(ZERO, verbosity)
         number_grid_points = Parameter.number_grid_points(ZERO, verbosity)
         dr_0 = Parameter.dr_0(ZERO, verbosity)
@@ -453,6 +501,14 @@ class ParameterFile():
         impure_atomic_weight = Parameter.impure_atomic_weight(ZERO, verbosity)
         energy_of_neutrals = Parameter.energy_of_neutrals(ZERO, verbosity)
 
+        # A N O M A L O U S  T R A N S P O R T
+        d_num_intpln_pts = Parameter.diffusion_num_intpln_pts(ZERO, verbosity)
+        d_rho_pol_grid = Parameter.diffusion_rho_pol_grid(ZERO, verbosity)
+        diffusion = Parameter.diffusion(ZERO, verbosity)
+        v_num_intpln_pts = Parameter.conv_veloc_num_intpln_pts(ZERO, verbosity)
+        v_rho_pol_grid = Parameter.conv_veloc_rho_pol_grid(ZERO, verbosity)
+        convective_velocity = Parameter.convective_velocity(ZERO, verbosity)
+
         parameter_dict = {
             atomic_weight.name: atomic_weight,
             charge.name: charge,
@@ -470,27 +526,42 @@ class ParameterFile():
             number_of_impurities.name: number_of_impurities,
             element.name: element,
             impure_atomic_weight.name: impure_atomic_weight,
-            energy_of_neutrals.name: energy_of_neutrals
+            energy_of_neutrals.name: energy_of_neutrals,
+            d_num_intpln_pts.name: d_num_intpln_pts,
+            d_rho_pol_grid.name: d_rho_pol_grid,
+            diffusion.name: diffusion,
+            v_num_intpln_pts.name: v_num_intpln_pts,
+            v_rho_pol_grid.name: v_rho_pol_grid,
+            convective_velocity.name: convective_velocity
         }
 
-        groups = [[element.name, impure_atomic_weight.name, energy_of_neutrals.name],
-                  [time.name, dt_start.name, dt_increase.name, steps_per_cycle.name]]
+        groups = [[element.name, impure_atomic_weight.name,
+                   energy_of_neutrals.name],
+
+                  [time.name, dt_start.name, dt_increase.name,
+                   steps_per_cycle.name]]
 
         return parameter_dict, groups
 
     @staticmethod
     def _empty_background(verbosity):
         """
-        Generates a dictionary of all the main file Parameter
-        objects initialized
+        Generates parameters dictionary and group for the background
+        ParameterFile object.
 
-        Parameters:
-            * **verbosity** [bool]: turns on and off verbose ouput
-                for all Parameter objects
+        Initiates every Parameter object that can be found
+        within a background parameter file by using the classmethods defined
+        within ./parameters.py. Then organizes them into a dictionary.
+        Additionally, this creates the nested list of groups required by
+        ParameterFile objects for the background file.
+
+        Args:
+            verbosity (bool): Turns on and off verbose ouput for all
+                Parameter objects
 
         Returns:
-            * **parameter_dict** [dict]: dictionary of background file
-                Parameter obj
+            A nested list of groups of background file Parameter object names,
+            and a dictionary of background file Parameter objects.
         """
         ZERO = np.array([0], dtype=np.float)
 
@@ -534,14 +605,68 @@ class ParameterFile():
 
     @staticmethod
     def _empty_geometry(verbosity):
+        """
+        Generates parameters dictionary and group for the geometry
+        ParameterFile object.
+
+        Initiates every Parameter object that can be found
+        within a geometry parameter file by using the classmethods defined
+        within ./parameters.py. Then organizes them into a dictionary.
+        Additionally, this creates the nested list of groups required by
+        ParameterFile objects for the geometry file.
+
+        Args:
+            verbosity (bool): Turns on and off verbose ouput for all
+                Parameter objects
+
+        Returns:
+            A nested list of groups of geometry file Parameter object names,
+            and a dictionary of geometry file Parameter objects.
+        """
         pass
 
     @staticmethod
     def _empty_flux(verbosity):
+        """
+        Generates parameters dictionary and group for the flux
+        ParameterFile object.
+
+        Initiates every Parameter object that can be found
+        within a flux parameter file by using the classmethods defined
+        within ./parameters.py. Then organizes them into a dictionary.
+        Additionally, this creates the nested list of groups required by
+        ParameterFile objects for the flux file.
+
+        Args:
+            verbosity (bool): Turns on and off verbose ouput for all
+                Parameter objects
+
+        Returns:
+            A nested list of groups of flux file Parameter object names,
+            and a dictionary of flux file Parameter objects.
+        """
         pass
 
     @staticmethod
     def _empty_atomic_data(verbosity):
+        """
+        Generates parameters dictionary and group for the atomic data
+        ParameterFile object.
+
+        Initiates every Parameter object that can be found
+        within a atomic data parameter file by using the classmethods defined
+        within ./parameters.py. Then organizes them into a dictionary.
+        Additionally, this creates the nested list of groups required by
+        ParameterFile objects for the atomic data file.
+
+        Args:
+            verbosity (bool): Turns on and off verbose ouput for all
+                Parameter objects
+
+        Returns:
+            A nested list of groups of atomic data file Parameter object names,
+            and a dictionary of atomic data file Parameter objects.
+        """
         pass
 
 
@@ -556,18 +681,25 @@ class InputFile():
     Input files are store in the same directory the STRAHL is executed from.
     """
 
-    def __init__(self, inpt_fn, inputs=None, verbosity=False):
-        """
-        Initialization method to create an InputFile object.
+    def __init__(self, inpt_fn, inputs=None,
+                 overwrite_flag=False, verbosity=False):
+        """Initializes an InputFile object.
 
-        Parameters:
-            * **inpt_fn** [str]: the name of the input file
-            * **inputs** [list|None]: the list of values of the parameters
-            * **verbosity** [bool|False]: turns on and off verbose ouput
+        Args:
+            inpt_fn (str): The name of the input file
+            inputs (list: The list of values of the parameters.
+            overwrite_flag (bool): Determines if the  given input file
+                will be automatically overwritten. If not boolean, then
+                the default is False.
+            verbosity (bool): Turns on and off verbose ouput
 
         Attributes:
-            * **verbose** [bool]: determines if verbose execution is used
-            * **inputs** [list]: the list of values of the parameters
+            inputs (list): List of values of the parameters
+            overwrite_flag (bool): Determines if the  given input file
+                will be automatically overwritten.
+            fn (str): The name of the input file
+            path (str): The path to the input file
+            verbose (bool): Determines if verbose execution is used
         """
 
         if inputs is not None and isinstance(inputs, list):
@@ -575,28 +707,38 @@ class InputFile():
         else:
             self.inputs = list()
 
+        if isinstance(overwrite_flag, bool):
+            self.overwrite_flag = overwrite_flag
+        else:
+            self.overwrite_flag = False
+
         if isinstance(verbosity, bool):
             self.verbose = verbosity
 
             if self.verbose:
-                print(">>>>>Initialized an InputFile object with attributes: ")
+                print(">>>> Initialized an InputFile object with attributes: ")
                 print(self.__dict__)
         else:
             self.verbose = False
 
-        self.create(inpt_fn)
+        self.fn, self.path = self.create(inpt_fn)
 
     def create(self, inpt_fn=None):
-        """
-        Handles the generation/loading of an input file and initializes the
-        input file objects attributes accordingly.
+        """Creates or loads an input file into the InputFile object.
 
-        Parameters:
-            * **inpt_fn** [str|None]: The input file name.
+        If the user does not given an input file name, then the user is
+        prompted to give a name. If the input file exists already, and the
+        overwrite_flag is False, then the user is prompted to confirm
+        overwriting of the input file. Once this is confirmed the entire
+        file will be emptied. If the user elects to not overwrite the file,
+        then they are prompted to input a new file name.
+
+        Args:
+            inpt_fn (str): The input file name.
 
         Attributes:
-            * **fn** [str]: The input file name.
-            * **path** [str]: The path to the input file.
+            fn (str): The input file name.
+            path (str): The path to the input file.
         """
         if self.verbose:
             print("Creating an input file object and input file")
@@ -609,27 +751,35 @@ class InputFile():
         # Checks if the file exists already and if so gives the user
         # the option to overwrite it; otherwise, it generates a new file
         if os.path.isfile(inpt_fn):
-            print("Warning: The file {} already exists."
-                  .format(aux.colorFile(inpt_fn)))
+            if not self.overwrite_flag:
+                print("Warning: The file {} already exists."
+                      .format(aux.colorFile(inpt_fn)))
 
-            overwrite = input("Would you like to overwrite {} [Y/N]: "
-                              .format(aux.colorFile(inpt_fn)))
+                overwrite = input("Would you like to overwrite {} [Y/N]: "
+                                  .format(aux.colorFile(inpt_fn)))
 
-            if overwrite is "":
-                sys.exit("Exiting")
-
-            if re.match("(n|N)", overwrite):
-                aux.print_dirContents(os.curdir)
-
-                inpt_fn = input(new_inpt_prompt)
-
-                if inpt_fn is "":
+                if overwrite is "":
                     sys.exit("Exiting")
 
-                else:
-                    return self.create(inpt_fn)
+                if re.match("(n|N)", overwrite):
+                    aux.print_dirContents(os.curdir)
 
-            elif re.match("(y|Y)", overwrite):
+                    inpt_fn = input(new_inpt_prompt)
+
+                    if inpt_fn is "":
+                        sys.exit("Exiting")
+
+                    else:
+                        return self.create(inpt_fn)
+
+                elif re.match("(y|Y)", overwrite):
+                    with open(inpt_fn, "w") as f:
+                        f.truncate(0)
+            else:
+                if self.verbose:
+                    print("Automatically overwriting {}..."
+                          .format(inpt_fn))
+
                 with open(inpt_fn, "w") as f:
                     f.truncate(0)
 
@@ -639,11 +789,13 @@ class InputFile():
         mkfileCmd = "touch {}".format(inpt_fn)
         sub.call(mkfileCmd.split())
 
-        self.fn = inpt_fn
-        self.path = os.path.join(os.curdir, inpt_fn)
+        fn = inpt_fn
+        path = os.path.join(os.curdir, inpt_fn)
+
+        return fn, path
 
     def attributes(self):
-        """Prints out all of the attributes of the InputFile object"""
+        """Prints all of the attributes of the InputFile object"""
         if self.verbose:
             print("Printing attributes ...\n")
 
@@ -663,45 +815,47 @@ class SummaryFile():
     """
 
     def __init__(self, sum_fn=None, verbosity=False):
-        """
-        Initializes a SummaryFile object
+        """Initializes a SummaryFile object
 
-        Parameters:
-            * **sum_fn** [str]: summary file name
-            * **verbosity** [bool]: turns on and off verbose ouput
+        Args:
+            sum_fn (str): The summary file name
+            verbosity (bool): Turns on and off verbose ouput
 
         Attributes:
-            * **verbose** [bool]: determines if verbose execution is used
+            verbose (bool): Determines if verbose execution is used
         """
         if isinstance(verbosity, bool):
             self.verbose = verbosity
 
             if self.verbose:
-                print(">>>>>Initialized a SummaryFile object with attributes: ")
+                print(">>> Initialized a SummaryFile object with attributes: ")
                 print(self.__dict__)
         else:
             self.verbose = False
 
-        self.create(sum_fn)
+        self.fn, self.path, self.serial = self.create(sum_fn)
 
     def create(self, sum_fn=None):
-        """
-        Handles the generation/loading of a summary file and initializes the
-        summary file objects attributes accordingly.
+        """Creates or loads a summary file
+
+        If a summary file name is not provided then the user is prompted for one
+        and the files inside of ./summaries is provided for reference. The summary
+        file name must also end in either .json or .hdf5 in order to be created
+        and compatible with serialization techniques implemented.
 
         Parameters:
-            * **sum_fn** [str|None]: The summary file name.
+            sum_fn (str): The summary file name.
 
         Attributes:
-            * **fn** [str]: The input file name.
-            * **path** [str]: The path to the input file.
-            * **serial** [str]: The type of serialization for this summary file
+            fn (str): The input file name.
+            path (str): The path to the input file.
+            serial (str): The type of serialization for this summary file
         """
         if self.verbose:
             print("Creating an summary file object and summary file")
 
         # If sum_fn is not given, then we request the user
-        sum_fn_prompt = "Please select or create a summary file or exit [enter]: "
+        sum_fn_prompt = "Please input a valid summary file or exit [enter]: "
         if sum_fn is None or sum_fn is "":
             aux.print_dirContents("./summaries")
 
@@ -736,12 +890,14 @@ class SummaryFile():
 
             sub.call(mkFileCmd.split())
 
-        self.path = os.path.dirname(path_to_file)
-        self.fn = sum_fn
-        self.serial = serial.group(1)
+        path = os.path.dirname(path_to_file)
+        fn = sum_fn
+        serial = serial.group(1)
+
+        return fn, path, serial
 
     def attributes(self):
-        """Prints out all of the attributes of the InputFile object"""
+        """Prints out all of the attributes of the SummaryFile object"""
         if self.verbose:
             print("Printing attributes ...\n")
 

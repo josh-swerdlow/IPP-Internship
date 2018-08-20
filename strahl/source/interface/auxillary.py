@@ -1,9 +1,9 @@
-from source.interface.parameters import Parameter
-
-import termcolor
-import numpy
 import os
 import re
+import numpy
+import termcolor
+
+from parameters import Parameter
 
 
 def print_dirContents(path):
@@ -97,7 +97,6 @@ def parameter_lists(dic=None):
     params_off = list()
 
     if isinstance(dic, dict) and len(dic) != 0:
-        print(dic)
         params, vals = zip(*dic.items())
 
         params_on = [key for (key, val) in zip(params, vals) if val['state']]

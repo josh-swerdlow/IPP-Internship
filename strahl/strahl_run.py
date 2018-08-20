@@ -40,7 +40,7 @@ def strahl_run(inpt_fns=None, strahl_cmd="./strahl"):
             if inpt_fn is "":
                 sys.exit("Exiting")
 
-        sub.call(strahl_cmd(inpt_fn).split())
+        sub.call(strahl_cmd_file(inpt_fn).split())
 
 
 if __name__ == '__main__':

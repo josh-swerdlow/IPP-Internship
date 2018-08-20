@@ -1,11 +1,11 @@
 
                M A I N  I O N
 
-cv#    background ion:  atomic weight    charge
+cv    background ion:  atomic weight    charge
                            4.0           2.0
 
 			G R I D - F I L E
-cv#    shot      index
+cv    shot      index
       22022       0
 
                    G R I D   P O I N T S  A N D  I T E R A T I O N
@@ -28,10 +28,10 @@ cv    save all cycles = 1, save final and start distribution = 0
 
                       T I M E S T E P S
 
-cv#    number of changes (start-time+... +stop-time)
+cv    number of changes (start-time+... +stop-time)
                  4
 
-cv#    time    dt at start    increase of dt after cycle     steps per cycle
+cv    time    dt at start    increase of dt after cycle     steps per cycle
       0.0        1.e-2               1.0                        20
       2.4599	 1.e-4		     1.0			1
       2.4600	 1.e-4		     1.0			1
@@ -41,10 +41,10 @@ cv#    time    dt at start    increase of dt after cycle     steps per cycle
            S T A R T    I M P U R I T Y   E L E M E N T S
       (for each impurity one input line needed in this block)
 
-cv#     number of impurities
+cv     number of impurities
                 1
 
-cv#     element   impure atomic weight  energy of neutrals(eV)
+cv     element   impure atomic weight  energy of neutrals(eV)
        'Fe'		55.8		15.0
     		      S O  U R C E
 
@@ -96,25 +96,25 @@ cv    time-vector
 cv      Diffusion [m^2/s]
         'interp'
 
-cv   	# of interpolation points
+cv#   	# of interpolation points
            2
 
-cv	rho polodial grid for interpolation
+cv#	rho polodial grid for interpolation
            0.0    1.0
 
-cv	D[m^2/s]
+cv#	D[m^2/s]
            0.5     0.5
 
 cv    Drift function       Drift Parameter/Velocity
         'interp'		'velocity'
 
-cv   	# of interpolation points
+cv#   	# of interpolation points
            2
 
-cv	rho polodial grid for interpolation
+cv#	rho polodial grid for interpolation
           0.0    1.0
 
-cv	v[m/s]
+cv#	v[m/s]
           0.5     0.5
 
 cv    # of sawteeth     inversion radius

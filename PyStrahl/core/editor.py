@@ -880,16 +880,25 @@ class InputFileEditor(InputFile):
 
         with open(self.fn, "r+") as f:
             f.write(main_fn + "\n")
-            f.write("0.00\n")
+            f.write("/\n")
 
             for inpt in self.inputs:
                 inpt_bckup = inpt
 
-                if isinstance(inpt, (int, float)):
+                if isinstance(inpt, int):
+                    inpt = "{}".format(inpt)
+
+                    if self.verbose:
+                        print("{} was an instance of int"
+                             .format(inpt_bckup))
+                        print("Changing {} to {}"
+                             .format(inpt_bckup, inpt))
+
+                elif isinstance(inpt, float):
                     inpt = "{:.4f}".format(inpt)
 
                     if self.verbose:
-                        print("{} was an instance of int or float"
+                        print("{} was an instance of float"
                              .format(inpt_bckup))
                         print("Changing {} to {}"
                              .format(inpt_bckup, inpt))
@@ -961,7 +970,7 @@ class InputFileEditor(InputFile):
 
                 f.writelines(inpt)
 
-            f.write("\\E")
+            f.write("E\n")
 
             if self.verbose:
                 print(">>>>>Created the following input file")

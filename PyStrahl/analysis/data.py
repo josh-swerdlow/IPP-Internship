@@ -706,7 +706,12 @@ class Residual:
         """
         print("\nInitializing Residual object...")
 
-        self.fit = fit
+        if fit is None:
+            print("WARNING: fit is NoneType. You must set it before " +
+                  "anything can be printed. Use set() to assign a fit.")
+
+        else:
+            self.fit = fit
 
         if not isinstance(D_spline_, Splines):
             sys.exit("D_spline_ must be Splines object.")
@@ -781,16 +786,32 @@ class Residual:
 
         return res_str
 
-    def set(self, D_spline_=None, v_spline_=None,
+    def set(self, fit=None, D_spline_=None, v_spline_=None,
             x=None, y=None, sigma=None):
 
+        if fit is not None:
+            if callable(fit):
+                print("Assigned fit to {}".format(fit))
+                self.fit = fit
+
+            else:
+                print("fit must be a function.")
+
         if D_spline_ is not None:
-            print("Assigned spline_ to {}".format(D_spline_.spline_class))
-            self.D_spline_ = D_spline_
+            if isinstance(D_spline_, Splines):
+                print("Assigned spline_ to {}".format(D_spline_.spline_class))
+                self.D_spline_ = D_spline_
+
+            else:
+                print("D_spline_ must be a Spline object.")
 
         if v_spline_ is not None:
-            print("Assigned spline_ to {}".format(v_spline_.spline_class))
-            self.v_spline_ = v_spline_
+            if isinstance(v_spline_, Splines):
+                print("Assigned spline_ to {}".format(v_spline_.spline_class))
+                self.v_spline_ = v_spline_
+
+            else:
+                print("v_spline_ must be a Spline object.")
 
         if x is not None:
             print("Assigned x to {}".format(x))
@@ -991,7 +1012,7 @@ class Residual:
                   self.numb_knots, x, v_profile]
 
         strahl.quick_input_file(main_fn="op12a_171122022_FeLBO3_experimental_signal",
-                                inpt_fn=inpt_fn, inputs=inputs, verbose=self.verboses)
+                                inpt_fn=inpt_fn, inputs=inputs, verbose=self.verbose)
 
         # Run strahl
         strahl_cmd = None
@@ -1030,9 +1051,10 @@ class Residual:
         return emissivity_profile
 
     @classmethod
-    def strahl(cls, D_spline_, v_spline_, verbose=None):
+    def strahl(cls, D_spline_, v_spline_, strahl_verbose=False, verbose=False):
 
-        residual_ = cls(cls.strahl_fit, D_spline_, v_spline_, verbose=verbose)
+        residual_ = cls(D_spline_, v_spline_,
+                        strahl_verbose=strahl_verbose, verbose=verbose)
 
         return residual_
 

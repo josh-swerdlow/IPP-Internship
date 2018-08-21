@@ -1,3 +1,4 @@
+import os
 import sys
 
 import numpy as np
@@ -695,8 +696,9 @@ class Residuals:
 
 class Residual:
 
-    def __init__(self, D_spline_, v_spline_, fit=None,
-                 x=None, y=None, sigma=None,
+    def __init__(self, D_spline_, v_spline_,
+                 main_fn, inpt_fn, data_fn,
+                 fit=None, x=None, y=None, sigma=None,
                  strahl_verbose=False, verbose=False):
         """
         Initializes a STRAHL_Residual object which can calculate
@@ -705,13 +707,6 @@ class Residual:
         into mpfit with the evaluate method.
         """
         print("\nInitializing Residual object...")
-
-        if fit is None:
-            print("WARNING: fit is NoneType. Use set() to assign a fit.")
-            print("Using strahl fitting algorithm by default.")
-            self.fit = self.strahl_fit
-        else:
-            self.fit = fit
 
         if not isinstance(D_spline_, Splines):
             sys.exit("D_spline_ must be Splines object.")
@@ -750,6 +745,31 @@ class Residual:
         self.Dy_knots = self.D_spline_.y_knots
         self.vy_knots = self.v_spline_.y_knots
 
+        main_path = os.path.join("./param_files", main_fn)
+        if not os.path.isfile(main_path):
+            sys.exit("{} is not a valid main file.".format(main_fn))
+
+        self.main_fn = main_fn
+
+        inpt_path = os.path.join("./", inpt_fn)
+        if not os.path.isfile(inpt_path):
+            sys.exit("{} is not a valid input file.".format(inpt_fn))
+
+        self.inpt_fn = inpt_fn
+
+        result_path = os.path.join("./result", data_fn)
+        if not os.path.isfile(result_path):
+            sys.exit("{} is not a valid result file.".format(data_fn))
+
+        self.data_fn = data_fn
+
+        if fit is None:
+            print("WARNING: fit is NoneType. Use set() to assign a fit.")
+            print("Using strahl fitting algorithm by default.")
+            self.fit = self.strahl_fit
+        else:
+            self.fit = fit
+
         if x is None:
             print("x is NoneType. Use set() to assign a value.")
         else:
@@ -786,17 +806,11 @@ class Residual:
 
         return res_str
 
-    def set(self, fit=None, D_spline_=None, v_spline_=None,
-            x=None, y=None, sigma=None):
+    def set(self, D_spline_=None, v_spline_=None,
+            main_fn=None, inpt_fn=None, data_fn=None,
+            fit=None, x=None, y=None, sigma=None):
 
-        if fit is not None:
-            if callable(fit):
-                print("Assigned fit to {}".format(fit))
-                self.fit = fit
-
-            else:
-                print("fit must be a function.")
-
+        # Handle setting D_spline_
         if D_spline_ is not None:
             if isinstance(D_spline_, Splines):
                 print("Assigned spline_ to {}".format(D_spline_.spline_class))
@@ -805,6 +819,7 @@ class Residual:
             else:
                 print("D_spline_ must be a Spline object.")
 
+        # Handle setting v_spline_
         if v_spline_ is not None:
             if isinstance(v_spline_, Splines):
                 print("Assigned spline_ to {}".format(v_spline_.spline_class))
@@ -813,20 +828,65 @@ class Residual:
             else:
                 print("v_spline_ must be a Spline object.")
 
+        # Handle setting main_fn
+        if main_fn is not None:
+            # Main parameter files should be in ./param_files
+            main_path = os.path.join("./param_files", main_fn)
+
+            if not os.path.isfile(main_path):
+                print("{} is not a valid main file.".format(main_fn))
+
+            else:
+                self.main_fn = main_fn
+
+        # Handle setting inpt_fn
+        if inpt_fn is not None:
+            # Input files should be in main directory .
+            inpt_path = os.path.join("./", inpt_fn)
+
+            if not os.path.isfile(inpt_path):
+                print("{} is not a valid input file.".format(inpt_fn))
+
+            else:
+                self.inpt_fn = inpt_fn
+
+        # Handle setting data_fn
+        if data_fn is not None:
+            # Result files should be in ./result
+            result_path = os.path.join("./result", data_fn)
+
+            if not os.path.isfile(result_path):
+                print("{} is not a valid result file.".format(data_fn))
+
+            else:
+                self.data_fn = data_fn
+
+        # Handle setting fit
+        if fit is not None:
+            if callable(fit):
+                print("Assigned fit to {}".format(fit))
+                self.fit = fit
+
+            else:
+                print("fit must be a function.")
+
+        # Handle setting x
         if x is not None:
             print("Assigned x to {}".format(x))
             self.x = x
 
+        # Handle setting y
         if y is not None:
             print("Assigned y to {}".format(y))
             self.y = y
 
+        # Handle setting sigma
         if sigma is not None:
             print("Assigned sigma to {}".format(sigma))
             self.sigma = sigma
 
     def mpfit_residual(self, coeffs, x, y, sigma):
-        fit = self.fit(self, coeffs=coeffs, x=x)
+        fit = self.fit(coeffs=coeffs, x=x)
 
         residual = np.divide(y - fit, sigma)
 
@@ -1006,27 +1066,23 @@ class Residual:
         v_profile = self.v_spline_(x)
 
         # Create a quick input file
-        inpt_fn = "fit_update_input"
+        inputs = [len(x), x, D_profile,
+                  len(x), x, v_profile]
 
-        inputs = [self.numb_knots, x, D_profile,
-                  self.numb_knots, x, v_profile]
-
-        strahl.quick_input_file(main_fn="op12a_171122022_FeLBO3_experimental_signal",
-                                inpt_fn=inpt_fn, inputs=inputs, verbose=self.verbose)
+        strahl.quick_input_file(main_fn=self.main_fn, inpt_fn=self.inpt_fn,
+                                inputs=inputs, verbose=self.verbose)
 
         # Run strahl
         strahl_cmd = None
         if self.strahl_verbose:
             strahl_cmd = "./strahl v"
 
-        strahl.run(inpt_fn, strahl_cmd=strahl_cmd, verbose=self.verbose)
+        strahl.run(self.inpt_fn, strahl_cmd=strahl_cmd, verbose=self.verbose)
 
         # Extract emissivity
-        data_fn = "Festrahl_result.dat"
-
         variables = ['diag_lines_radiation']
 
-        results = strahl.extract_results(result=data_fn, variables=variables)
+        results = strahl.extract_results(result=self.data_fn, variables=variables)
 
         emissivity_ = results['variables']['diag_lines_radiation']
         emissivity_raw = emissivity_.data
@@ -1051,9 +1107,10 @@ class Residual:
         return emissivity_profile
 
     @classmethod
-    def strahl(cls, D_spline_, v_spline_, strahl_verbose=False, verbose=False):
+    def strahl(cls, D_spline_, v_spline_, main_fn, inpt_fn, data_fn,
+               strahl_verbose=False, verbose=False):
 
-        residual_ = cls(D_spline_, v_spline_,
+        residual_ = cls(D_spline_, v_spline_, main_fn, inpt_fn, data_fn,
                         strahl_verbose=strahl_verbose, verbose=verbose)
 
         return residual_

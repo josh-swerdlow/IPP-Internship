@@ -12,7 +12,7 @@ import sys
 import pymc3 as pm
 import matplotlib.pyplot as plt
 
-from mirmpfit import mpfit
+from PyStrahl.mirmpfit import mpfit
 from PyStrahl.analysis.data import Function, Residual
 
 
@@ -164,7 +164,9 @@ class Markov_Chain_Monte_Carlo():
 
 class Least_Square():
 
-    def __init__(self, x, y, sigma, residual_, fun_, verbose=False):
+    def __init__(self, x, y, sigma, residual_, fun_,
+                 main_fn=None, inpt_fn=None, data_fn=None,
+                 verbose=False):
 
         print("\nInitializing Least Square Model...")
 
@@ -176,6 +178,15 @@ class Least_Square():
 
         if not isinstance(residual_, Residual):
             sys.exit("Error: residual_ is not a Residuals object.")
+
+        if main_fn is not None:
+            residual_.set(main_fn=main_fn)
+
+        if inpt_fn is not None:
+            residual_.set(inpt_fn=inpt_fn)
+
+        if data_fn is not None:
+            residual_.set(data_fn=data_fn)
 
         self.residual_ = residual_
 

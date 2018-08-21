@@ -695,7 +695,7 @@ class Residuals:
 
 class Residual:
 
-    def __init__(self, fit, D_spline_, v_spline_,
+    def __init__(self, D_spline_, v_spline_, fit=None,
                  x=None, y=None, sigma=None,
                  strahl_verbose=False, verbose=False):
         """
@@ -1053,7 +1053,7 @@ class Residual:
     @classmethod
     def strahl(cls, D_spline_, v_spline_, strahl_verbose=False, verbose=False):
 
-        residual_ = cls(None, D_spline_, v_spline_,
+        residual_ = cls(D_spline_, v_spline_,
                         strahl_verbose=strahl_verbose, verbose=verbose)
 
         return residual_

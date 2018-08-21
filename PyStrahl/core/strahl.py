@@ -314,7 +314,6 @@ def quick_input_file(main_fn=None, inpt_fn=None, inputs=None,
     of file if passed through this method). You have been warned.
     """
 
-    # If file already exists, then remove all text inside. BEWARE.
     if main_fn is None or inpt_fn is None or inputs is None:
         sys.exit()
 
@@ -328,7 +327,7 @@ def quick_input_file(main_fn=None, inpt_fn=None, inputs=None,
     inpt_editor.write(main_fn)
 
 
-def run(inpt_fns=None, strahl_cmd="./strahl", verbose=False):
+def run(inpt_fns=None, strahl_cmd=None, verbose=False):
     """
     Runs strahl using an input file to fill in the parameters that have been
     commented out from parameter files.
@@ -341,6 +340,9 @@ def run(inpt_fns=None, strahl_cmd="./strahl", verbose=False):
             manual.
 
     """
+    if strahl_cmd is None:
+        strahl_cmd = "./strahl"
+
     if not strahl_cmd.startswith("./strahl"):
         sys.exit("Error: strahl command is of wrong format " +
                  "it should start with ./strahl")
@@ -369,8 +371,9 @@ def run(inpt_fns=None, strahl_cmd="./strahl", verbose=False):
 
             if inpt_fn is "":
                 sys.exit("Exiting")
+
         with open(inpt_fn, 'r') as f:
-            process = subprocess.Popen(strahl_cmd, stdin=f,
+            process = subprocess.Popen(strahl_cmd.split(), stdin=f,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              universal_newlines=True)
 
@@ -381,6 +384,7 @@ def run(inpt_fns=None, strahl_cmd="./strahl", verbose=False):
 
             if errmsg is not "":
                 print("Error:\n{}".format(errmsg))
+
 
 def extract_results(result="Festrahl_result.dat",
                     variables=None, dimensions=None, attributes=None,

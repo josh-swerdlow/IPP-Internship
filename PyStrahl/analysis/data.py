@@ -696,7 +696,8 @@ class Residuals:
 class Residual:
 
     def __init__(self, fit, D_spline_, v_spline_,
-                 x=None, y=None, sigma=None, verbose=False):
+                 x=None, y=None, sigma=None,
+                 strahl_verbose=False, verbose=False):
         """
         Initializes a STRAHL_Residual object which can calculate
         various parameters (weighted_residual, unweight_residual,
@@ -762,6 +763,10 @@ class Residual:
         self.verbose = verbose
         if self.verbose:
             print("Executing with verbose output.")
+
+        self.strahl_verbose = strahl_verbose
+        if self.strahl_verbose:
+            print("Executing strahl with verbose output!")
 
     def __str__(self):
         res_dict = self.__dict__
@@ -982,14 +987,18 @@ class Residual:
         # Create a quick input file
         inpt_fn = "fit_update_input"
 
-        parameters = [len(x), x, D_profile,
-                      len(x), x, v_profile]
+        inputs = [self.numb_knots, x, D_profile,
+                  self.numb_knots, x, v_profile]
 
         strahl.quick_input_file(main_fn="op12a_171122022_FeLBO3_experimental_signal",
-                                inpt_fn=inpt_fn, parameters=parameters)
+                                inpt_fn=inpt_fn, inputs=inputs, verbose=self.verboses)
 
         # Run strahl
-        # strahl.run(inpt_fn)
+        strahl_cmd = None
+        if self.strahl_verbose:
+            strahl_cmd = "./strahl v"
+
+        strahl.run(inpt_fn, strahl_cmd=strahl_cmd, verbose=self.verbose)
 
         # Extract emissivity
         data_fn = "Festrahl_result.dat"

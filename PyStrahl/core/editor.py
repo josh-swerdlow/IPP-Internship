@@ -895,7 +895,7 @@ class InputFileEditor(InputFile):
                              .format(inpt_bckup, inpt))
 
                 elif isinstance(inpt, float):
-                    inpt = "{:.4f}".format(inpt)
+                    inpt = "{:.8E}".format(inpt)
 
                     if self.verbose:
                         print("{} was an instance of float"
@@ -907,7 +907,7 @@ class InputFileEditor(InputFile):
                     empty = ""
 
                     for inp in inpt:
-                        empty = empty + "{:.4f} ".format(inp)
+                        empty = empty + "{:.8E} ".format(inp)
 
                     inpt = empty
 
@@ -940,7 +940,7 @@ class InputFileEditor(InputFile):
                     for row in range(rows):
                         row_str = str()
                         for col in range(cols):
-                            row_str = row_str + "{:.4f} ".format(inpt[row, col])
+                            row_str = row_str + "{:.8E} ".format(inpt[row, col])
 
                         row_str = row_str[:-1] + "\n"
 

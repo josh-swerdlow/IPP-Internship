@@ -755,6 +755,11 @@ class Residual:
         if not os.path.isfile(inpt_path):
             sys.exit("{} is not a valid input file.".format(inpt_fn))
 
+        # We do not check if inpt_fn is a valid file, since it can be created!!
+        # Please be careful!
+        if verbose:
+            print("Not checking if {} is created or not.".format(inpt_fn))
+
         self.inpt_fn = inpt_fn
 
         result_path = os.path.join("./result", data_fn)
@@ -842,13 +847,10 @@ class Residual:
         # Handle setting inpt_fn
         if inpt_fn is not None:
             # Input files should be in main directory .
-            inpt_path = os.path.join("./", inpt_fn)
+            if self.verbose:
+                print("Not checking if {} is created or not.".format(inpt_fn))
 
-            if not os.path.isfile(inpt_path):
-                print("{} is not a valid input file.".format(inpt_fn))
-
-            else:
-                self.inpt_fn = inpt_fn
+            self.inpt_fn = inpt_fn
 
         # Handle setting data_fn
         if data_fn is not None:

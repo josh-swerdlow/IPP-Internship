@@ -9,7 +9,7 @@
 # every variable must have its units corrected to SI before hand
 import sys
 
-import pymc3 as pm
+# import pymc3 as pm
 import matplotlib.pyplot as plt
 
 from PyStrahl.mirmpfit import mpfit
@@ -164,7 +164,7 @@ class Markov_Chain_Monte_Carlo():
 
 class Least_Square():
 
-    def __init__(self, x, y, sigma, residual_, fun_,
+    def __init__(self, x, y, sigma, parameter_info, residual_, fun_,
                  main_fn=None, inpt_fn=None, data_fn=None,
                  verbose=False):
 
@@ -175,6 +175,15 @@ class Least_Square():
         self.x = x
         self.y = y
         self.sigma = sigma
+
+        if isinstance(parameter_info, list):
+            for item in parameter_info:
+                if isinstance(item, dict):
+                    self.parameter_info = parameter_info
+                else:
+                    sys.exit("Error: All elements of parameter_info must be of type dict.")
+        else:
+            sys.exit("Error: parameter_info must be of type list.")
 
         if not isinstance(residual_, Residual):
             sys.exit("Error: residual_ is not a Residuals object.")
@@ -199,14 +208,30 @@ class Least_Square():
 
         return str(self.__dict__)
 
-    def fit(self, coeffs, stats=False):
+    def fit(self, coeffs, parinfo=None, stats=False):
+
+        if parinfo is None:
+            if self.verbose:
+                print("Using original initialized parameter info.")
+
+            parinfo = self.paremter_info
+        else:
+            if not isinstance(parinfo, list):
+                sys.exit("Error: parainfo must be of type list.")
+            else:
+                for item in parinfo:
+                    if not isinstance(item, dict):
+                        sys.exit("Error: All elements of parinfo must be of type dict.")
+
+
 
         print("Running mpfit...")
         print("\tInitial guess: {}".format(coeffs))
         print("\tResidual keys: {}".format(self.res_keys.keys()))
+        print("\tParameter info: {}".format(parinfo))
 
         mpfit_ = mpfit(self.residual_.mpfit_residual, coeffs,
-                       residual_keywords=self.res_keys,
+                       residual_keywords=self.res_keys, parinfo=parinfo,
                        quiet=False)
 
         print("mpfit has completed executing...")

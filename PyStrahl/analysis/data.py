@@ -707,9 +707,9 @@ class Residual:
         print("\nInitializing Residual object...")
 
         if fit is None:
-            print("WARNING: fit is NoneType. You must set it before " +
-                  "anything can be printed. Use set() to assign a fit.")
-
+            print("WARNING: fit is NoneType. Use set() to assign a fit.")
+            print("Using strahl fitting algorithm by default.")
+            self.fit = self.strahl_fit
         else:
             self.fit = fit
 
@@ -1053,7 +1053,7 @@ class Residual:
     @classmethod
     def strahl(cls, D_spline_, v_spline_, strahl_verbose=False, verbose=False):
 
-        residual_ = cls(D_spline_, v_spline_,
+        residual_ = cls(None, D_spline_, v_spline_,
                         strahl_verbose=strahl_verbose, verbose=verbose)
 
         return residual_

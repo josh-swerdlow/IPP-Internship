@@ -1049,6 +1049,9 @@ class Residual:
             plt.show()
 
     def strahl_fit(self, coeffs, x):
+        # Scaling factor
+        scale = coeffs[4]
+
         # Extract (x,y) coordinates for knots of D and v
         Dx_knots = self.x_knots
         Dy_knots = coeffs[0:self.numb_knots]
@@ -1087,7 +1090,7 @@ class Residual:
         results = strahl.extract_results(result=self.data_fn, variables=variables)
 
         emissivity_ = results['variables']['diag_lines_radiation']
-        emissivity_raw = emissivity_.data
+        emissivity_raw = scale * emissivity_.data
 
         # Use the first charge state of the emissivity measurement and naively
         # integrate over time to get a profile
@@ -1096,7 +1099,7 @@ class Residual:
         emissivity = emissivity_raw[:, charge_state, :]
 
         dimensions = emissivity_.dimensions
-        integration_dimension = "time"
+        integration_dimension = "rho_poloidal_grid"
 
         if integration_dimension in dimensions:
             integration_axis = dimensions.index(integration_dimension)

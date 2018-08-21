@@ -300,38 +300,35 @@ def interface(main_fn=None, bckg_fn=None, geom_fn=None, flux_fn=None,
         execute()
 
 
-def quick_input_file(main_fn=None, inpt_fn=None, parameters=None,
+def quick_input_file(main_fn=None, inpt_fn=None, inputs=None,
                      verbose=False):
     """
     WARNING WARNING WARNING
     PLEASE READ BEFORE USE
-    Quick way to (re) write an input file given a list of parameters
+    Quick way to (re) write an input file given a list of inputs
     in the order that you know they should be read in! If the given
     input file already exists this method will remove the contents
-    and rewrite it given the new parameters. Please be careful as
+    and rewrite it given the new inputs. Please be careful as
     there are NO SAFETY protocols in place to ensure the input file you
     give are indeed input files (i.e. one could delete the wrong type
     of file if passed through this method). You have been warned.
     """
 
     # If file already exists, then remove all text inside. BEWARE.
-    if main_fn is None or inpt_fn is None or parameters is None:
+    if main_fn is None or inpt_fn is None or inputs is None:
         sys.exit()
 
     with open(inpt_fn, "w+") as file:
         file.truncate()
 
-    inpt_editor = InputFileEditor(inpt_fn=inpt_fn,
+    inpt_editor = InputFileEditor(inpt_fn=inpt_fn, inputs=inputs,
                                   overwrite_flag=True,
                                   verbosity=verbose)
-
-    for parameter in parameters:
-        inpt_editor.add(parameter)
 
     inpt_editor.write(main_fn)
 
 
-def execute(inpt_fns=None, strahl_cmd="./strahl"):
+def run(inpt_fns=None, strahl_cmd="./strahl", verbose=False):
     """
     Runs strahl using an input file to fill in the parameters that have been
     commented out from parameter files.
@@ -344,7 +341,9 @@ def execute(inpt_fns=None, strahl_cmd="./strahl"):
             manual.
 
     """
-    strahl_cmd_file = lambda file: strahl_cmd + "< {}".format(file)
+    if not strahl_cmd.startswith("./strahl"):
+        sys.exit("Error: strahl command is of wrong format " +
+                 "it should start with ./strahl")
 
     if inpt_fns is None:
         print_directory(os.curdir)
@@ -355,22 +354,33 @@ def execute(inpt_fns=None, strahl_cmd="./strahl"):
         if inpt_fns is "":
             sys.exit("Exiting")
 
+    # Converts single and multi input strings to lists
     if isinstance(inpt_fns, str):
         inpt_fns = inpt_fns.split()
 
-    if not isinstance(inpt_fns, list):
-        inpt_fns = list(inpt_fns)
+    elif not isinstance(inpt_fns, list):
+        sys.exit("TypeError: inpt_fns must be list or list of strings.")
 
     for inpt_fn in inpt_fns:
         if not os.path.isfile("./" + inpt_fn):
-            print("Error: {} is not a valid file".format(inpt_fn))
+            print("Error: ./{} is not a valid file".format(inpt_fn))
+
             inpt_fn = input("Enter the correct file or exit [enter]: ")
 
             if inpt_fn is "":
                 sys.exit("Exiting")
+        with open(inpt_fn, 'r') as f:
+            process = subprocess.Popen(strahl_cmd, stdin=f,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             universal_newlines=True)
 
-        subprocess.call(strahl_cmd_file(inpt_fn).split())
+            output, errmsg = process.communicate()
 
+            if verbose:
+                print("Output:\n{}".format(output))
+
+            if errmsg is not "":
+                print("Error:\n{}".format(errmsg))
 
 def extract_results(result="Festrahl_result.dat",
                     variables=None, dimensions=None, attributes=None,

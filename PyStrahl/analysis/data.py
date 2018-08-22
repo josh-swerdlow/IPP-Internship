@@ -9,6 +9,10 @@ from PyStrahl.core import strahl
 from PyStrahl.utils import math
 from scipy.interpolate import InterpolatedUnivariateSpline
 
+FLOAT_MIN_VAL = sys.float_info.min
+FLOAT_EPSILON = sys.float_info.epsilon
+FLOAT_ABS_MIN = FLOAT_MIN_VAL * FLOAT_EPSILON
+
 
 class Function:
     """Create a Function object that stores certain features of the
@@ -752,10 +756,6 @@ class Residual:
 
         self.main_fn = main_fn
 
-        inpt_path = os.path.join("./", inpt_fn)
-        if not os.path.isfile(inpt_path):
-            sys.exit("{} is not a valid input file.".format(inpt_fn))
-
         # We do not check if inpt_fn is a valid file, since it can be created!!
         # Please be careful!
         if verbose:
@@ -900,6 +900,9 @@ class Residual:
 
     def mpfit_residual(self, coeffs, x, y, sigma):
         fit = self.fit(coeffs=coeffs, x=x)
+
+        # Protect from divide by 0 errors
+        sigma[sigma == 0.0] = FLOAT_ABS_MIN
 
         residual = np.divide(y - fit, sigma)
 
@@ -1111,13 +1114,15 @@ class Residual:
 
         profile, scaled_profile = profiles
 
-        return profile
+        return scaled_profile
 
     @classmethod
     def strahl(cls, D_spline_, v_spline_, main_fn, inpt_fn, data_fn,
+               charge_index, integration_dim,
                strahl_verbose=False, verbose=False):
 
         residual_ = cls(D_spline_, v_spline_, main_fn, inpt_fn, data_fn,
+                        charge_index, integration_dim,
                         strahl_verbose=strahl_verbose, verbose=verbose)
 
         return residual_

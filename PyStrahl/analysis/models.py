@@ -164,7 +164,7 @@ class Markov_Chain_Monte_Carlo():
 
 class Least_Square():
 
-    def __init__(self, x, y, sigma, parameter_info, residual_, fun_,
+    def __init__(self, x, y, sigma, parameter_info, residual_,
                  main_fn=None, inpt_fn=None, data_fn=None,
                  verbose=False):
 
@@ -199,10 +199,7 @@ class Least_Square():
 
         self.residual_ = residual_
 
-        if fun_ is not None and not isinstance(fun_, Function):
-            sys.exit("Error: fun_ is not a Function object.")
-
-        self.fun_ = fun_
+        self.verbose = verbose
 
     def __str__(self):
 
@@ -214,23 +211,24 @@ class Least_Square():
             if self.verbose:
                 print("Using original initialized parameter info.")
 
-            parinfo = self.paremter_info
+            parinfo = self.parameter_info
+
         else:
             if not isinstance(parinfo, list):
                 sys.exit("Error: parainfo must be of type list.")
+
             else:
                 for item in parinfo:
                     if not isinstance(item, dict):
                         sys.exit("Error: All elements of parinfo must be of type dict.")
 
-
-
         print("Running mpfit...")
-        print("\tInitial guess: {}".format(coeffs))
-        print("\tResidual keys: {}".format(self.res_keys.keys()))
-        print("\tParameter info: {}".format(parinfo))
+        if self.verbose:
+            print("\tInitial guess: {}".format(coeffs))
+            print("\tResidual keys: {}".format(self.res_keys.keys()))
+            print("\tParameter info: {}".format(parinfo))
 
-        mpfit_ = mpfit(self.residual_.mpfit_residual, coeffs,
+        mpfit_ = mpfit(self.residual_.mpfit_residual,
                        residual_keywords=self.res_keys, parinfo=parinfo,
                        quiet=False)
 

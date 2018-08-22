@@ -373,6 +373,9 @@ def run(inpt_fns=None, strahl_cmd=None, verbose=False):
                 sys.exit("Exiting")
 
         with open(inpt_fn, 'r') as f:
+            if verbose:
+                print("Executing: {} < {}".format(strahl_cmd, inpt_fn))
+
             process = subprocess.Popen(strahl_cmd.split(), stdin=f,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                              universal_newlines=True)

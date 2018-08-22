@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 from copy import copy
 from PyStrahl.core import strahl
+from PyStrahl.utils import math
 from scipy.interpolate import InterpolatedUnivariateSpline
 
 
@@ -696,8 +697,8 @@ class Residuals:
 
 class Residual:
 
-    def __init__(self, D_spline_, v_spline_,
-                 main_fn, inpt_fn, data_fn,
+    def __init__(self, D_spline_, v_spline_, main_fn, inpt_fn,
+                 data_fn, charge_index, integration_dim,
                  fit=None, x=None, y=None, sigma=None,
                  strahl_verbose=False, verbose=False):
         """
@@ -767,6 +768,16 @@ class Residual:
             sys.exit("{} is not a valid result file.".format(data_fn))
 
         self.data_fn = data_fn
+
+        if charge_index < 0:
+            sys.exit("charge_index must be >= 0.")
+
+        self.charge_index = charge_index
+
+        if not isinstance(integration_dim, str):
+            sys.exit("integration_dim must be a string instance.")
+
+        self.integration_dim = integration_dim
 
         if fit is None:
             print("WARNING: fit is NoneType. Use set() to assign a fit.")
@@ -1049,15 +1060,12 @@ class Residual:
             plt.show()
 
     def strahl_fit(self, coeffs, x):
-        # Scaling factor
-        scale = coeffs[4]
-
         # Extract (x,y) coordinates for knots of D and v
         Dx_knots = self.x_knots
         Dy_knots = coeffs[0:self.numb_knots]
 
         vx_knots = self.x_knots
-        vy_knots = coeffs[self.numb_knots:]
+        vy_knots = coeffs[self.numb_knots:self.numb_knots * 2]
 
         # Reset spline objects with new knots
         D_spline_attributes = self.D_spline_.re_init(Dx_knots, Dy_knots)
@@ -1087,29 +1095,23 @@ class Residual:
         # Extract emissivity
         variables = ['diag_lines_radiation']
 
-        results = strahl.extract_results(result=self.data_fn, variables=variables)
+        results = strahl.extract_results(result=self.data_fn,
+                                         variables=variables)
 
         emissivity_ = results['variables']['diag_lines_radiation']
-        emissivity_raw = scale * emissivity_.data
 
-        # Use the first charge state of the emissivity measurement and naively
-        # integrate over time to get a profile
-        charge_state = 0
+        # Scale factor for the profile
+        scale = coeffs[4] * 50000
 
-        emissivity = emissivity_raw[:, charge_state, :]
+        # Extract profiles from emissivity_
+        profiles = math.generate_profile(emissivity_,
+                                         charge_index=self.charge_index,
+                                         integrat_dim=self.integration_dim,
+                                         signal_scale=scale)
 
-        dimensions = emissivity_.dimensions
-        integration_dimension = "rho_poloidal_grid"
+        profile, scaled_profile = profiles
 
-        if integration_dimension in dimensions:
-            integration_axis = dimensions.index(integration_dimension)
-        else:
-            sys.exit("Exiting: Cannot find '{}' in '{}' dimensions."
-                  .format(integration_dimension, emissivity_.name))
-
-        emissivity_profile = np.sum(emissivity, axis=integration_axis)
-
-        return emissivity_profile
+        return profile
 
     @classmethod
     def strahl(cls, D_spline_, v_spline_, main_fn, inpt_fn, data_fn,

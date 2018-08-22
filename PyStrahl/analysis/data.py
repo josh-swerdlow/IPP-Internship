@@ -824,7 +824,8 @@ class Residual:
 
     def set(self, D_spline_=None, v_spline_=None,
             main_fn=None, inpt_fn=None, data_fn=None,
-            fit=None, x=None, y=None, sigma=None):
+            fit=None, x=None, y=None, sigma=None,
+            fit_val=None, coeffs=None):
 
         # Handle setting D_spline_
         if D_spline_ is not None:
@@ -898,6 +899,16 @@ class Residual:
             print("Assigned sigma to {}".format(sigma))
             self.sigma = sigma
 
+        # Handle setting fit_val
+        if fit_val is not None:
+            print("Assigned fit_val to {}".format(fit_val))
+            self.fit_val = fit_val
+
+        # Handle setting coeffs
+        if coeffs is not None:
+            print("Assigned coeffs to {}".format(coeffs))
+            self.coeffs = coeffs
+
     def mpfit_residual(self, coeffs, x, y, sigma):
         fit = self.fit(coeffs=coeffs, x=x)
 
@@ -933,25 +944,22 @@ class Residual:
         if y is True:
             if hasattr(self, 'y'):
                 y = self.y
-            else:
-                sys.exit("{} has no attribute 'y'".format(self))
+        elif y is None:
+            sys.exit("{} has no attribute 'y'".format(self))
 
         if weighted is not True:
             sigma = 1
         elif sigma is True:
             if hasattr(self, 'sigma'):
                 sigma = self.sigma
+        elif sigma is None:
+            sys.exit("{} has no attribute 'sigma'".format(self))
 
-            else:
-                sys.exit("{} has no attribute 'sigma'".format(self))
-
-        if fit_val is True or fit_val is not None:
+        if fit_val is True:
             if hasattr(self, 'fit_val'):
                 fit_val = self.fit_val
-
-            else:
-                sys.exit("{} has no attribute 'fit_val'".format(self))
-
+                residual = np.divide((y - fit_val), sigma)
+        elif fit_val is not None:
             residual = np.divide((y - fit_val), sigma)
 
         elif coeffs is True and x is True:
@@ -960,11 +968,12 @@ class Residual:
 
                 x = self.x
 
-            else:
-                sys.exit("{} has either no attribute 'coeffs' or 'x'"
-                         .format(self))
-
+        elif coeffs is not None and x is not None:
             residual = np.divide((y - self.fit(coeffs, x)), sigma)
+
+        else:
+            sys.exit("{} has either no attribute 'coeffs' or 'x'"
+                     .format(self) + " OR no attribute 'fit_val'.")
 
         return residual
 
@@ -978,38 +987,36 @@ class Residual:
         if y is True:
             if hasattr(self, 'y'):
                 y = self.y
-            else:
-                sys.exit("{} has no attribute 'y'".format(self))
+        elif y is None:
+            sys.exit("{} has no attribute 'y'".format(self))
 
         if weighted is not True:
             sigma = 1
         elif sigma is True:
             if hasattr(self, 'sigma'):
                 sigma = self.sigma
+        elif sigma is None:
+            sys.exit("{} has no attribute 'sigma'".format(self))
 
-            else:
-                sys.exit("{} has no attribute 'sigma'".format(self))
-
-        if fit_val is True or fit_val is not None:
+        if fit_val is True:
             if hasattr(self, 'fit_val'):
                 fit_val = self.fit_val
-
-            else:
-                sys.exit("{} has no attribute 'fit_val'".format(self))
-
-            residual = self.residual(y=y, sigma=sigma, fit_val=fit_val)
+                residual = np.divide((y - fit_val), sigma)
+        elif fit_val is not None:
+            residual = np.divide((y - fit_val), sigma)
 
         elif coeffs is True and x is True:
             if hasattr(self, 'coeffs') and hasattr(self, 'x'):
                 coeffs = self.coeffs
-
                 x = self.x
+                residual = np.divide((y - self.fit(coeffs, x)), sigma)
 
-            else:
-                sys.exit("{} has either no attribute 'coeffs' or 'x'"
-                         .format(self))
+        elif coeffs is not None and x is not None:
+            residual = np.divide((y - self.fit(coeffs, x)), sigma)
 
-            residual = self.residual(y=y, coeffs=coeffs, x=x, weighted=False)
+        else:
+            sys.exit("{} has either no attribute 'coeffs' or 'x'"
+                     .format(self) + " OR no attribute 'fit_val'.")
 
         residual_squared = np.divide(np.square(residual), sigma)
 
@@ -1032,7 +1039,7 @@ class Residual:
         return np.sum(residual_squared)
 
     def reduced_chi_squared(self, x=None, y=None, sigma=None, coeffs=None,
-                            fit=None, n=None, m=None, v=None):
+                            fit_val=None, n=None, m=None, v=None):
         """
         Calculates the reduced chi-squared over the data
         stored in the Residuals object.
@@ -1066,7 +1073,7 @@ class Residual:
                          "parameters and degrees of freedom are none.")
 
         chi_squared = self.chi_squared(x=x, y=y, sigma=sigma,
-                                       coeffs=coeffs, fit=fit)
+                                       coeffs=coeffs, fit_val=fit_val)
 
         return np.divide(chi_squared, v)
 

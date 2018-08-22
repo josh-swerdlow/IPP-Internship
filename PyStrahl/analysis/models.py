@@ -241,18 +241,56 @@ class Least_Square():
             print("params[{}]: {} with perror {}".format(index, param, error))
             index += 1
 
+        # Get the final fitted signal
+        # QUICK UGLY CODING
+        x = self.x
+        y = self.y
+        sigma = self.sigma
+        coeffs = mpfit_.params
+        fit_val = self.residual_.fit(coeffs, x)
+        self.fit_val = fit_val
+
         # Reinitialize the D and v spline objects with the fitted knot coeffs
-        self.residual_.re_init_splines(y=mpfit_.params)
+        # self.residual_.re_init_splines(y=mpfit_.params)
 
         # Calculate some statistics for storage
-        weighted_residual = self.residual_.residual()
-        weighted_residual_sq = self.residual_.residual_squared()
+        print("Calculating weighted_residual")
+        weighted_residual = self.residual_.residual(x=x,
+                                                    y=y,
+                                                    fit_val=fit_val,
+                                                    sigma=sigma)
 
-        unweighted_residual = self.residual_.residual(weighted=False)
-        unweighted_residual_sq = self.residual_.residual_squared(weighted=False)
+        print("Calculating weighted_residual_sq")
+        weighted_residual_sq = self.residual_.residual_squared(x=y,
+                                                               y=y,
+                                                               fit_val=fit_val,
+                                                               sigma=sigma)
 
-        chi_sq = self.residual_.chi_squared()
-        reduce_chi_sq = self.residual_.reduced_chi_squared(v=mpfit_.dof)
+        print("Calculating unweighted_residual")
+        unweighted_residual = self.residual_.residual(x=x,
+                                                      y=y,
+                                                      fit_val=fit_val,
+                                                      sigma=sigma,
+                                                      weighted=False)
+
+        print("Calculating unweighted_residual_sq")
+        unweighted_residual_sq = self.residual_.residual_squared(x=x,
+                                                                 y=y,
+                                                                 fit_val=fit_val,
+                                                                 sigma=sigma,
+                                                                 weighted=False)
+
+        print("Calculating chi_sq")
+        chi_sq = self.residual_.chi_squared(x=x,
+                                            y=y,
+                                            fit_val=fit_val,
+                                            sigma=sigma)
+        print("Calculating reduce_chi_sq")
+        reduce_chi_sq = self.residual_.reduced_chi_squared(x=x,
+                                                           y=y,
+                                                           fit_val=fit_val,
+                                                           sigma=sigma,
+                                                           v=mpfit_.dof)
 
         self.statistics = {'Weighted Residual': weighted_residual,
                            'Weighted Residual Squared': weighted_residual_sq,
@@ -295,11 +333,11 @@ class Least_Square():
             plt.show()
 
     def plot_error(self, hold=False, save=None):
-        plt.figure(self.fun_.name)
-        plt.title(self.fun_.name)
+        plt.figure("Error")
+        plt.title("Error")
 
         if hasattr(self, 'mpfit_') and hasattr(self, 'residual_'):
-            x_knots = self.residual_.spline_.x_knots
+            x_knots = self.residual_.x_knots
             y_knots = self.mpfit_.params
             perror = self.mpfit_.perror
 
@@ -317,7 +355,7 @@ class Least_Square():
 
         # Title formatting
         plt.figure("Fitted Plot")
-        plt.title("Fitted f(x) = {}".format(self.fun_.equation))
+        plt.title("Fitted f(x)")
 
         # Initiating the spline interpolation on fitting points
         # spl = self.spline_model.spline_function(self.fit.params)
@@ -325,12 +363,12 @@ class Least_Square():
         plt.plot(self.x, self.y, 'k.')
 
         if hasattr(self, 'mpfit_') and hasattr(self, 'residual_'):
-            x_knots = self.residual_.spline_.x_knots
+            x_knots = self.residual_.x_knots
             y_knots = self.mpfit_.params
             perror = self.mpfit_.perror
-            fit = self.residual_.spline_(self.x)
+            fit_val = self.fit_val
 
-            plt.plot(self.x, fit, 'r')
+            plt.plot(self.x, fit_val, 'r')
 
             plt.errorbar(x_knots, y_knots,
                          fmt='x', elinewidth=1.5, yerr=perror)
@@ -340,20 +378,34 @@ class Least_Square():
         plt.legend(["Experimental Signal", "Fitted Estimate", "Knots with error"])
         plt.show()
 
-    def plot_residual(self, weighted=True, hold=False, save=None):
+    def plot_residual(self, weighted=True, squared=True,
+                      hold=False, save=None):
+        """
+        Plots one of the following: weighted residual,
+        unweighted residual, weighted residual squared,
+        unweighted residual squared.
+        """
 
-        figure_str = "Residual"
-        if weighted:
-            figure_str = "Weighted " + figure_str
-        else:
-            figure_str = "Unweighted " + figure_str
-
-        if hasattr(self, 'statistics'):
+        if squared and weighted:
+            figure_str = "Weighted Residual Squared"
             residuals = self.statistics[figure_str]
 
+        elif squared and not weighted:
+            figure_str = "Unweighted Residual Squared"
+            residuals = self.statistics[figure_str]
+
+        elif not squared and weighted:
+            figure_str = "Weighted Residual"
+            residuals = self.statistics[figure_str]
+
+        elif not squared and not weighted:
+            figure_str = "Unweighted Residual"
+            residuals = self.statistics[figure_str]
+
+        plt.figure(figure_str)
         plt.title(figure_str)
         plt.scatter(self.x, residuals)
-        plt.legend({figure_str})
+        plt.legend([figure_str])
 
         if not hold:
             plt.show()

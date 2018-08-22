@@ -15,8 +15,10 @@ __author__ = "Joshua Swerdow"
 import sys
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 from scipy.io import netcdf_variable
+
 
 def charge_state_netcdf(variable_, charge_index):
     """Extracts a charge state slice of a netcdf variable's data
@@ -233,9 +235,102 @@ def generate_profile(variable_, charge_index, integrat_dim, signal_scale):
     return (profile, scaled_profile)
 
 
+def plot_sigmas(x, sigma, show=False, fn=None):
+
+    plt.title("Signal Error")
+
+    plt.scatter(x, sigma)
+
+    plt.legend(["Weightings"])
+
+    if fn is not None and isinstance(fn, str):
+        plt.savefig("./plots/" + fn)
+
+    if show:
+        plt.show()
 
 
+def plot_error(x_knots, y_knots, perror, show=False, fn=None):
 
+    plt.figure("Error")
+    plt.title("Error")
+
+    plt.errorbar(x_knots, y_knots,
+                fmt='o-', ecolor='r', yerr=perror)
+
+    plt.legend(["Fit with error"])
+
+    if fn is not None and isinstance(fn, str):
+        plt.savefig("./plots/" + fn)
+
+    if show:
+        plt.show()
+
+
+def plot_signal_fit(time, signal, fit_val,
+                    x_knots, y_knots, perror,
+                    show=False, fn=None):
+
+    # Title formatting
+    plt.figure("Fitted Plot")
+    plt.title("Fitted f(x)")
+
+    plt.plot(time, signal, time, fit_val, 'k.')
+
+    plt.errorbar(x_knots, y_knots,
+                fmt='o-', ecolor='r', yerr=perror)
+
+    plt.legend(["Experimental Signal", "Fitted Estimate", "Knots with error"])
+
+    if fn is not None and isinstance(fn, str):
+        plt.savefig("./plots/" + fn)
+
+    if show:
+        plt.show()
+
+def plot_w_residual_sq(x, weighted_residual_squared, show=False, fn=None):
+    plt.plot(x, weighted_residual_squared)
+    plt.legend(['weighted_residual_squared'])
+    plt.xlabel("Rho")
+
+    if fn is not None and isinstance(fn, str):
+        plt.savefig("./plots/" + fn)
+
+    if show:
+        plt.show()
+
+def plot_residual_sq(x, residual_squared, show=False, fn=None):
+    plt.plot(x, residual_squared)
+    plt.legend(['residual_squared'])
+    plt.xlabel("Rho")
+
+    if fn is not None and isinstance(fn, str):
+        plt.savefig("./plots/" + fn)
+
+    if show:
+        plt.show()
+
+def plot_w_residual(x, weighted_residual, show=False, fn=None):
+    plt.plot(x, weighted_residual)
+    plt.legend(['weighted_residual'])
+    plt.xlabel("Rho")
+
+    if fn is not None and isinstance(fn, str):
+        plt.savefig("./plots/" + fn)
+
+    if show:
+        plt.show()
+
+def plot_residual(x, residual, show=False, fn=None):
+    plt.plot(x, residual)
+    plt.legend(['residual'])
+    plt.xlabel("Rho")
+
+    if fn is not None and isinstance(fn, str):
+        plt.savefig("./plots/" + fn)
+
+    if show:
+        plt.show()
 
 
 

@@ -93,13 +93,14 @@ def generate_experimental_signal(index, dim):
     # scale the profile by some factor, add scaled noise to the signal
     print("Generating signal...")
 
-    signal_scale, noise_scale = 100000, 2
+    signal_scale, noise_scale, background_scale = 100000, 2, 10
 
     signal_outputs = math.generate_signal(emissivity_,
-                                         charge_index=index,
-                                         integrat_dim=dim,
-                                         signal_scale=signal_scale,
-                                         noise_scale=noise_scale)
+                                          charge_index=index,
+                                          integrat_dim=dim,
+                                          signal_scale=signal_scale,
+                                          noise_scale=noise_scale,
+                                          background_scale=background_scale)
 
     profile, scaled_profile, signal, sigma = signal_outputs
 
@@ -146,14 +147,18 @@ def strahl_fit_least_square(summary_, signal, rho_pol_grid, sigma, index, dim):
 
     # Make a guess about the scale factor
     scale_guess = 1.8
+    background_guess = 5
+
+    parnames = ['D0', 'D1', 'v0', 'v1', 'noise', 'background']
+    guesses = [D0_guess, D1_guess, v0_guess, v1_guess,
+               scale_guess, background_guess]
 
     # Initialize some constants
     STEP = 1.0e-4
     D_LOWER_BOUND = 5.0e-3
     SCALE_LOWER_BOUND = 0.0e0
-
-    parnames = ['D0', 'D1', 'v0', 'v1', 'scale']
-    guesses = [D0_guess, D1_guess, v0_guess, v1_guess, scale_guess]
+    BACK_LOWER_BOUND = 0.0e0
+    BACK_UPPER_BOUND = 100e0
 
     # Instantiate parinfo list
     parinfo = list()
@@ -173,6 +178,10 @@ def strahl_fit_least_square(summary_, signal, rho_pol_grid, sigma, index, dim):
         elif parname is "scale":
             dic['limited'] = [True, False]
             dic['limits'] = [SCALE_LOWER_BOUND, 0.0]
+
+        elif parname is "background":
+            dic['limited'] = [True, True]
+            dic['limits'] = [BACK_LOWER_BOUND, BACK_UPPER_BOUND]
 
         parinfo.append(dic)
 

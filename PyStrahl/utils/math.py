@@ -135,7 +135,7 @@ def scale_netcdf(variable_, signal_scale):
     return scaled_data
 
 
-def noise_netcdf(variable_, noise_scale):
+def noise_netcdf(variable_, noise_scale, background_scale):
     """Adds scaled Gaussian noise to a netcdf variables data
 
     Be warned, this method overwrites the appropriate attributes of the
@@ -155,7 +155,7 @@ def noise_netcdf(variable_, noise_scale):
     data = variable_.data
 
     # Calculate sigmas
-    sigmas = np.sqrt(data)
+    sigmas = np.sqrt(data + background_scale)
 
     # Calculate noise with a normal distribution centered at 0.0
     noise = noise_scale * np.random.normal(scale=sigmas, size=data.shape)
@@ -168,7 +168,7 @@ def noise_netcdf(variable_, noise_scale):
 
 
 def generate_signal(variable_, charge_index, integrat_dim,
-                    signal_scale, noise_scale):
+                    signal_scale, noise_scale, background_scale):
     """Selects a charge state, naively integrates over a dimension,
     scales, and then finally adds scaled poisson noise to
     a netcdf variables data
@@ -199,7 +199,8 @@ def generate_signal(variable_, charge_index, integrat_dim,
 
     scaled_profile = scale_netcdf(variable_, signal_scale=signal_scale)
 
-    signal, sigma = noise_netcdf(variable_, noise_scale=noise_scale)
+    signal, sigma = noise_netcdf(variable_, noise_scale=noise_scale,
+                                 background_scale=background_scale)
 
     return (profile, scaled_profile, signal, sigma)
 

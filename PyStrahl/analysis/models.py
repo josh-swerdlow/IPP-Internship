@@ -313,10 +313,29 @@ class Least_Square():
 
         self.mpfit_ = mpfit_
 
-        print(mpfit_)
-        print(self.__dict__)
-
         return mpfit_
+
+    def results(self):
+        results = dict()
+
+        results['x'] = self.x
+        results['y'] = self.y
+        results['sigma'] = self.sigma
+
+        if hasattr(self, 'statistics'):
+            results['statistics'] = self.statistics
+
+        if hasattr(self, 'fit_val'):
+            results['fit_val'] = self.fit_val
+
+        if hasattr(self, 'parinfo'):
+            results['parinfo'] = self.parinfo
+
+        if hasattr(self, 'mpfit_'):
+            results['coeffs'] = self.mpfit_.params
+            results['perror'] = self.mpfit_.perror
+
+        return results
 
 
 class Gaussian_Process():

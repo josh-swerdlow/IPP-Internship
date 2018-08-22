@@ -315,7 +315,7 @@ class Least_Square():
 
         return mpfit_
 
-    def plot_sigmas(self, x=None, sigma=None, hold=False, save=None):
+    def plot_sigmas(self, x=None, sigma=None, show=False, fn=None):
         if x is None:
             x = self.x
 
@@ -329,10 +329,14 @@ class Least_Square():
         plt.scatter(x, sigma)
         plt.legend(["Weightings"])
 
-        if not hold:
+
+        if fn is not None and isinstance(fn, str):
+            plt.savefig("./plots/" + fn)
+
+        if show:
             plt.show()
 
-    def plot_error(self, hold=False, save=None):
+    def plot_error(self, show=False, fn=None):
         plt.figure("Error")
         plt.title("Error")
 
@@ -348,10 +352,13 @@ class Least_Square():
 
         plt.legend(["Fit with error"])
 
-        if not hold:
+        if fn is not None and isinstance(fn, str):
+            plt.savefig("./plots/" + fn)
+
+        if show:
             plt.show()
 
-    def plot_fit(self, hold=False, save=None):
+    def plot_fit(self, show=False, fn=None):
 
         # Title formatting
         plt.figure("Fitted Plot")
@@ -376,10 +383,15 @@ class Least_Square():
             print("No mpfit_ or residual_ object found within {}".format(self))
 
         plt.legend(["Experimental Signal", "Fitted Estimate", "Knots with error"])
-        plt.show()
+
+        if fn is not None and isinstance(fn, str):
+            plt.savefig("./plots/" + fn)
+
+        if show:
+            plt.show()
 
     def plot_residual(self, weighted=True, squared=True,
-                      hold=False, save=None):
+                      show=False, fn=None):
         """
         Plots one of the following: weighted residual,
         unweighted residual, weighted residual squared,
@@ -407,7 +419,10 @@ class Least_Square():
         plt.scatter(self.x, residuals)
         plt.legend([figure_str])
 
-        if not hold:
+        if fn is not None and isinstance(fn, str):
+            plt.savefig("./plots/" + fn)
+
+        if show:
             plt.show()
 
 class Gaussian_Process():

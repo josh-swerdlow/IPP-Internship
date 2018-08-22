@@ -241,8 +241,8 @@ class Least_Square():
             print("params[{}]: {} with perror {}".format(index, param, error))
             index += 1
 
-        # Reinitialize the spline object with the fitted knot coeffs
-        self.residual_.re_init_spline(y=mpfit_.params)
+        # Reinitialize the D and v spline objects with the fitted knot coeffs
+        self.residual_.re_init_splines(y=mpfit_.params)
 
         # Calculate some statistics for storage
         weighted_residual = self.residual_.residual()

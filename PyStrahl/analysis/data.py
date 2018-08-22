@@ -908,86 +908,115 @@ class Residual:
 
         return {'residual': residual}
 
-    def residual(self, x=None, y=None, sigma=None, weighted=True):
+    def residual(self, y=None, sigma=None, fit_val=None, coeffs=None,
+                 x=None, weighted=True):
+        """Calculates either the weighted or unweighted residual.
+
+        If any of the keywords are a boolean instances of True, then
+        this method expects there to be an attribute assigned to the
+        object for that keyword which it can use. Otherwise, if any of
+        the keywords are not a boolean instances of True, this method
+        expects the input value to be given in the correct form.
+
+        If fit_val is True or specified, then coeffs and x should not
+        be specified or True. Otherwise, coeffs and x should be specified
+        or True.
+
+        If weighted is False, sigma should not be specified or True.
+
+        Args:
+
+        Returns:
+
+
         """
-        Calculates either the weighted or unweighted residual
-        of the data stored in the Residuals object
+        if y is True:
+            if hasattr(self, 'y'):
+                y = self.y
+            else:
+                sys.exit("{} has no attribute 'y'".format(self))
 
-        Notes:
+        if weighted is not True:
+            sigma = 1
+        elif sigma is True:
+            if hasattr(self, 'sigma'):
+                sigma = self.sigma
 
-        The function executes in the following way depending and
-        the parameters given.
-        For x, if:
-            x is a param     and x is an attribute     --> use param
-            x is a param     and x is not an attribute --> use param
-            x is not a param and x is an attribute     --> use attribute
-            x is not a param and x is not an attribute --> exit
-        """
+            else:
+                sys.exit("{} has no attribute 'sigma'".format(self))
 
-        if x is not None or hasattr(self, 'x'):
-            if x is None:
-                if self.verbose:
-                    print("Using the attribute x.")
+        if fit_val is True or fit_val is not None:
+            if hasattr(self, 'fit_val'):
+                fit_val = self.fit_val
+
+            else:
+                sys.exit("{} has no attribute 'fit_val'".format(self))
+
+            residual = np.divide((y - fit_val), sigma)
+
+        elif coeffs is True and x is True:
+            if hasattr(self, 'coeffs') and hasattr(self, 'x'):
+                coeffs = self.coeffs
 
                 x = self.x
 
             else:
-                if self.verbose:
-                    print("Using parameter x.")
+                sys.exit("{} has either no attribute 'coeffs' or 'x'"
+                         .format(self))
 
-        else:
-            sys.exit("Residual requires a x value.")
+            residual = np.divide((y - self.fit(coeffs, x)), sigma)
 
-        if y is not None or hasattr(self, 'y'):
-            if y is None:
-                if self.verbose:
-                    print("Using the attribute y.")
+        return residual
 
+    def residual_squared(self, x=None, y=None, sigma=None, coeffs=None,
+                         fit_val=None, weighted=True):
+        """
+        Calculates either the weighted or unweighted squared
+        residual
+
+        """
+        if y is True:
+            if hasattr(self, 'y'):
                 y = self.y
-
             else:
-                if self.verbose:
-                    print("Using parameter y.")
+                sys.exit("{} has no attribute 'y'".format(self))
 
-        else:
-            sys.exit("Residual requires a y value.")
-
-        if sigma is not None or hasattr(self, 'sigma'):
-            if sigma is None:
-                if self.verbose:
-                    print("Using the attribute sigma.")
-
+        if weighted is not True:
+            sigma = 1
+        elif sigma is True:
+            if hasattr(self, 'sigma'):
                 sigma = self.sigma
 
             else:
-                if self.verbose:
-                    print("Using parameter sigma.")
+                sys.exit("{} has no attribute 'sigma'".format(self))
 
-        elif not weighted:
-            if self.verbose:
-                print("Calculating unweighted residual, sigma not needed.")
+        if fit_val is True or fit_val is not None:
+            if hasattr(self, 'fit_val'):
+                fit_val = self.fit_val
 
-            sigma = 1
+            else:
+                sys.exit("{} has no attribute 'fit_val'".format(self))
 
-        else:
-            sys.exit("Residual requires a sigma value.")
+            residual = self.residual(y=y, sigma=sigma, fit_val=fit_val)
 
-        return np.divide((y - self.spline_(x)), sigma)
+        elif coeffs is True and x is True:
+            if hasattr(self, 'coeffs') and hasattr(self, 'x'):
+                coeffs = self.coeffs
 
-    def residual_squared(self, weighted=True):
-        """
-        Calculates either the weighted or unweighted squared
-        residual of the data stored in the Residuals object
-        """
+                x = self.x
 
-        if not weighted:
-            sigma = 1
-        else:
-            sigma = self.sigma
+            else:
+                sys.exit("{} has either no attribute 'coeffs' or 'x'"
+                         .format(self))
 
-        return np.square(self.y - self.fit(self.x)) / sigma
+            residual = self.residual(y=y, coeffs=coeffs, x=x, weighted=False)
 
-    def chi_squared(self):
+        residual_squared = np.divide(np.square(residual), sigma)
+
+        return residual_squared
+
+    def chi_squared(self, x=None, y=None, sigma=None, coeffs=None,
+                    fit_val=None):
         """
         Calculates the chi-squared over the data stored in the
         Residuals object
@@ -996,9 +1025,14 @@ class Residual:
                 :math: sum_i( (y - y_)^2 / w)
         """
 
-        return np.sum(self.residual_squared(weighted=True))
+        residual_squared = self.residual_squared(x=x, y=y, sigma=sigma,
+                                                 coeffs=coeffs,
+                                                 fit_val=fit_val)
 
-    def reduced_chi_squared(self, n=None, m=None, v=None):
+        return np.sum(residual_squared)
+
+    def reduced_chi_squared(self, x=None, y=None, sigma=None, coeffs=None,
+                            fit=None, n=None, m=None, v=None):
         """
         Calculates the reduced chi-squared over the data
         stored in the Residuals object.
@@ -1016,8 +1050,8 @@ class Residual:
         # If nothing is provided
         if n is None and m is None and v is None:
             sys.exit("Reduced chi_squared expects either the number of " +
-                  "observations and number of fitted parameters or " +
-                  "the degrees of freedom. Currently none are given.")
+                     "observations and number of fitted parameters or " +
+                     "the degrees of freedom. Currently none are given.")
 
         # If n and m are provided and v is not calculte v = n - m
         # otherwise use the v provided
@@ -1031,7 +1065,10 @@ class Residual:
                 sys.exit("Number of observations or number of fitted " +
                          "parameters and degrees of freedom are none.")
 
-        return (self.chi_squared() / v)
+        chi_squared = self.chi_squared(x=x, y=y, sigma=sigma,
+                                       coeffs=coeffs, fit=fit)
+
+        return np.divide(chi_squared, v)
 
     def plot_residual(self, weighted=True, squared=False, hold=False):
         """
@@ -1115,6 +1152,29 @@ class Residual:
         profile, scaled_profile = profiles
 
         return scaled_profile
+
+    def re_init_splines(self, x=None, y=None, params=None):
+        numb_knots = self.numb_knots
+
+        if x is not None:
+            if isinstance(x, (list, np.ndarray)):
+                Dx_knots = x[0:numb_knots]
+                vx_knots = x[numb_knots:2 * numb_knots]
+            else:
+                sys.exit("x must be an instance of list or np.ndarray.")
+
+        if y is not None:
+            if isinstance(y, (list, np.ndarray)):
+                Dy_knots = y[0:numb_knots]
+                vy_knots = y[numb_knots:2 * numb_knots]
+            else:
+                sys.exit("y must be an instance of list or np.ndarray.")
+
+        D_reinit = self.D_spline_.re_init(Dx_knots, Dy_knots, params)
+        v_reinit = self.v_spline_.re_init(vx_knots, vy_knots, params)
+
+        self.D_spline_, self.Dx_knots, self.Dy_knots = D_reinit
+        self.v_spline_, self.vx_knots, self.vy_knots = v_reinit
 
     @classmethod
     def strahl(cls, D_spline_, v_spline_, main_fn, inpt_fn, data_fn,

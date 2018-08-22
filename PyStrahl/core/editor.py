@@ -768,6 +768,7 @@ class SummaryFileEditor(SummaryFile):
             * **dic** [dic]: A python dictionary describing some class.
             * **fn** [str]: The file name to write into.
         """
+        dic = SummaryFileEditor._preprocess_json(dic)
 
         with open(fn, "w") as f:
             json.dump(dic, f, indent=4)
@@ -779,6 +780,24 @@ class SummaryFileEditor(SummaryFile):
     @staticmethod
     def _writeHDF5(obj):
         pass
+
+    @staticmethod
+    def _preprocess_json(dic):
+        """Before writing to JSON, check the dict for datatypes that are not
+        serializable.
+
+        Args:
+            dic (dict): A dictionary instance to be preprocessed
+        """
+
+        for key, item in dic.items():
+            if isinstance(item, dict):
+                dic[key] = SummaryFileEditor._preprocess_json(item)
+
+            if isinstance(item, np.ndarray):
+                dic[key] = list(item)
+
+        return dic
 
 
 class InputFileEditor(InputFile):

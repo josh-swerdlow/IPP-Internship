@@ -1,42 +1,52 @@
-import sys
+# import sys
+# sys.path.append("./source")
+
+# import matplotlib
+# matplotlib.use('PDF')
 
 import numpy as np
 import matplotlib.pyplot as plt
 
+from PyStrahl.utils import math
 from PyStrahl.core import strahl
+from PyStrahl.mirmpfit import mpfit
 from PyStrahl.analysis.models import Least_Square
 from PyStrahl.analysis.data import Splines, Residual
 
-# G E N E R A T E  E X P E R I M E N T A L  S I G N A L
+#       G E N E R A T E  E X P E R I M E N T A L  S I G N A L
 print("G E N E R A T E  E X P E R I M E N T A L  S I G N A L")
 
 # Pick D and v points
 print("Picking D and v points...")
 num_knots = 2  # Ends of the profile
 
-D = np.ones(num_knots)  # Currently have constant D and v profiles
-v = np.ones(num_knots)
+# Constant D and v knots initially
+D_knots_init = np.asarray([0.1, 0.1])
+v_knots_init = np.asarray([0.1, 0.1])
+
+# Ends points of plasma initially
+x_knots_init = np.asarray([0.0, 1.0])
+
+inputs = [num_knots, x_knots_init, D_knots_init,
+          num_knots, x_knots_init, v_knots_init]
 
 # Run STRAHL with D and v knots allowing for automatic STRAHL interpolation
 # These should have the proper comments, input parameters, and summaries
 # otherwise one should generate using the interface and then run!
 print("Running STRAHL...")
-main_fn = "./param_files/op12a_171122022_FeLBO3_experimental_signal"
+main_fn = "op12a_171122022_FeLBO3_test"
 inpt_fn = "test_input"
-summ_fn = "test_summ.json"
-if inpt_fn is None or summ_fn is None or main_fn is None:
-    strahl.interface(main_fn,
-                     inpt_fn=inpt_fn,
-                     summ_fn=summ_fn,
-                     verbosity=True)
 
-# strahl.run(inpt_fn)
+strahl.quick_input_file(main_fn=main_fn, inpt_fn=inpt_fn, inputs=inputs,
+                        verbose=False)
 
-# Extract emmissivity, rho poloidal grid, time, and grid_points
-# from STRAHL run
+strahl.run(inpt_fn, verbose=False)
+
+# Extract emmissivity, rho poloidal grid, time, and grid_points from STRAHL run
 print("Extracting results from STRAHL...")
 data_fn = "Festrahl_result.dat"
 
+# Lists of names in the netCDF file
 variables = ['diag_lines_radiation', 'rho_poloidal_grid',
              'time']
 dimensions = ['grid_points']
@@ -52,8 +62,7 @@ variables_data = results['variables']
 dimensions_data = results['dimensions']
 attributes_data = results['attributes']
 
-emmissivity_ = variables_data['diag_lines_radiation']
-emmissivity_raw = emmissivity_.data
+emissivity_ = variables_data['diag_lines_radiation']
 
 rho_pol_grid_ = variables_data['rho_poloidal_grid']
 rho_pol_grid = rho_pol_grid_.data
@@ -64,90 +73,102 @@ time = time_.data
 
 grid_points = dimensions_data['grid_points']
 
-# Use the first charge state for our emissivity measurement
-charge_state = 0
+# Select a charge state, integrate naively over the selected dimension,
+# scale the profile by some factor, add scaled noise to the signal
+print("Generating signal...")
 
-emmissivity = emmissivity_raw[:, charge_state, :]
+index, dim, signal_scale, noise_scale = 0, "grid_points", 100000, 2
 
-# Integrate naively over the temporal dimension to get a profile
-dimensions = emmissivity_.dimensions
-integration_dimension = "time"
+signal_outputs = math.generate_signal(emissivity_,
+                                     charge_index=index,
+                                     integrat_dim=dim,
+                                     signal_scale=signal_scale,
+                                     noise_scale=noise_scale)
 
-if integration_dimension in dimensions:
-    integration_axis = dimensions.index(integration_dimension)
-else:
-    sys.exit("Exiting: Cannot find '{}' in '{}' dimensions."
-          .format(integration_dimension, emmissivity_.name))
+profile, scaled_profile, signal, sigma = signal_outputs
 
-emmissivity_profile = np.sum(emmissivity, axis=integration_axis)
+plt.plot(time, profile,
+         time, signal, 'x-',
+         time, scaled_profile, 'x-')
 
-# Scale the profile by some factor
-scale = 100000
-scaled_emissivity_profile = np.multiply(scale, emmissivity_profile)
+plt.legend(['Standard', 'Noisy', 'Scaled'])
+plt.xlabel('Time in {}'.format(time_.units.decode()))
+plt.title('Simulated Experimental Signal')
+plt.xlim([2.0, 2.5])
 
-# Add noise to the profile
-noise_factor = 2
-sigma = noise_factor * np.sqrt(scaled_emissivity_profile)
-noise_scaled_emissivity_profile = scaled_emissivity_profile + sigma
+plt.savefig('./plots/initial_profiles.pdf')
 
-# plt.plot(rho_pol_grid, emmissivity_profile,
-#          rho_pol_grid, noise_scaled_emissivity_profile, 'x-',
-#          rho_pol_grid, scaled_emissivity_profile, 'x-')
-
-# plt.legend(['Standard', 'Noisy', 'Scaled'])
-# plt.show()
-
-
-# Pick init guess for knots
-D_knots = np.ones(num_knots)
-v_knots = np.ones(num_knots)
-
-# Initialize spline objects for both D and v
-D_spline_ = Splines.linear_univariate_spline(rho_pol_knots, D_knots)
-v_spline_ = Splines.linear_univariate_spline(rho_pol_knots, v_knots)
-
-# F I T T I N G  L O O P
+#                       F I T T I N G  L O O P
 print("F I T T I N G  L O O P")
 
-residual_ = Residual.strahl(D_spline_, v_spline_, verbose=False)
-print(residual_)
+# Make some guesses about D and v knot locations
+D0_guess = 10
+D1_guess = 10
+v0_guess = 4
+v1_guess = 5
 
-res_keys = {'x': rho_pol_grid,
-            'y': noise_scaled_emissivity_profile,
-            'sigma': sigma
-            }
+D_guess = [D0_guess, D1_guess]
+v_guess = [v0_guess, v1_guess]
 
-coeffs = [10, 10, 4, 5]
-r = residual_.mpfit_residual(coeffs,
-                             x=rho_pol_grid,
-                             y=noise_scaled_emissivity_profile,
-                             sigma=sigma)
+# Initialize spline objects for both D and v guesses
+D_spline_ = Splines.linear_univariate_spline(rho_pol_knots, D_guess)
+v_spline_ = Splines.linear_univariate_spline(rho_pol_knots, v_guess)
 
+# Establish file names
+main_fn = "op12a_171122022_FeLBO3_test"
+inpt_fn = "fitting_loop_input"
+data_fn = "Festrahl_result.dat"
 
-mdl = Least_Square(x=rho_pol_grid, y=noise_scaled_emissivity_profile,
-                   sigma=sigma, residual_=residual_, fun_=None)
+residual_ = Residual.strahl(D_spline_, v_spline_, main_fn, inpt_fn,
+                            data_fn, index, dim,
+                            strahl_verbose=False, verbose=False)
 
-mdl.fit(coeffs=coeffs)
+res_keys = {'x': rho_pol_grid, 'y': signal, 'sigma': sigma}
 
-# def 1d_grid(length, points):
-#     """
-#     Given a length this calculates the positions in the range of
-#     [0, length] to evenly distribute all the points.
+# Make a guess about the scale factor
+scale_guess = 1.8
 
-#     Returns:
-#         A list of size points describing the distance from 0 for
-#         each point.
-#     """
-#     distance = np.divide(length, points - 1)
+# Initialize some constants
+STEP = 1.0e-4
+D_LOWER_BOUND = 5.0e-3
+SCALE_LOWER_BOUND = 0.0e0
 
-#     grid_point = 0
-#     while grid_point <= length:
-#         grid_points.append(grid_point)
+parnames = ['D0', 'D1', 'v0', 'v1', 'scale']
+guesses = [D0_guess, D1_guess, v0_guess, v1_guess, scale_guess]
 
-#         grid_point = grid_point + distance
+# Instantiate parinfo list
+parinfo = list()
+for parname, guess in zip(parnames, guesses):
+    dic = dict()
 
-#     return grid_points
+    dic['fixed'] = True
+    dic['parname'] = parname
+    dic['step'] = STEP
+    dic['limited'] = [False, False]
+    dic['limits'] = [0.0, 0.0]
 
+    if parname.startswith("D"):
+        dic['limited'] = [True, False]
+        dic['limits'] = [D_LOWER_BOUND, 0.0]
 
+    elif parname is "scale":
+        dic['limited'] = [True, False]
+        dic['limits'] = [SCALE_LOWER_BOUND, 0.0]
 
+    parinfo.append(dic)
+
+# Change all parameters to 'unfixed'
+for info in parinfo:
+    info['fixed'] = False
+
+# r = residual_.mpfit_residual(guesses, x=rho_pol_grid,
+#                              y=signal, sigma=sigma)
+
+fit = mpfit(residual_.mpfit_residual, guesses, residual_keywords=res_keys,
+      quiet=False)
+
+mdl = Least_Square(rho_pol_grid, signal, sigma, parinfo, residual_,
+                   verbose=False)
+
+mdl.fit(coeffs=guesses)
 

@@ -1,0 +1,193 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>auxillary &#8212; strahl 1.0.1 documentation</title>
+    <link rel="stylesheet" href="../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">strahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for auxillary</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">termcolor</span>
+
+<span class="kn">from</span> <span class="nn">parameters</span> <span class="k">import</span> <span class="n">Parameter</span>
+
+
+<div class="viewcode-block" id="print_dirContents"><a class="viewcode-back" href="../auxillary.html#auxillary.print_dirContents">[docs]</a><span class="k">def</span> <span class="nf">print_dirContents</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Map: </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="o">.</span> <span class="nb">format</span><span class="p">(</span><span class="n">colorFile</span><span class="p">(</span><span class="s2">&quot;files&quot;</span><span class="p">),</span>
+        <span class="n">colorDir</span><span class="p">(</span><span class="s2">&quot;directories&quot;</span><span class="p">),</span> <span class="n">colorPy</span><span class="p">(</span><span class="s2">&quot;python code&quot;</span><span class="p">),</span>
+        <span class="n">colorPckl</span><span class="p">(</span><span class="s2">&quot;summary files&quot;</span><span class="p">)))</span>
+
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+            <span class="c1"># Python (.py) files</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;.*.py&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  </span><span class="si">{}</span><span class="s2">  &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">colorPy</span><span class="p">(</span><span class="n">file</span><span class="p">)))</span>
+            <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s2">&quot;.*.pckl&quot;</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  </span><span class="si">{}</span><span class="s2">  &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">colorPckl</span><span class="p">(</span><span class="n">file</span><span class="p">)))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  </span><span class="si">{}</span><span class="s2">  &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">colorFile</span><span class="p">(</span><span class="n">file</span><span class="p">)))</span>
+
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  </span><span class="si">{}</span><span class="s2">  &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">colorDir</span><span class="p">(</span><span class="s2">&quot;./&quot;</span> <span class="o">+</span> <span class="n">file</span><span class="p">)))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="colorFile"><a class="viewcode-back" href="../auxillary.html#auxillary.colorFile">[docs]</a><span class="k">def</span> <span class="nf">colorFile</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">color</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;blue&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="colorDir"><a class="viewcode-back" href="../auxillary.html#auxillary.colorDir">[docs]</a><span class="k">def</span> <span class="nf">colorDir</span><span class="p">(</span><span class="nb">dir</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">color</span><span class="p">(</span><span class="nb">dir</span><span class="p">,</span> <span class="s1">&#39;red&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="colorPy"><a class="viewcode-back" href="../auxillary.html#auxillary.colorPy">[docs]</a><span class="k">def</span> <span class="nf">colorPy</span><span class="p">(</span><span class="n">pyFile</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">color</span><span class="p">(</span><span class="n">pyFile</span><span class="p">,</span> <span class="s1">&#39;cyan&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="colorPckl"><a class="viewcode-back" href="../auxillary.html#auxillary.colorPckl">[docs]</a><span class="k">def</span> <span class="nf">colorPckl</span><span class="p">(</span><span class="n">pickle</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">color</span><span class="p">(</span><span class="n">pickle</span><span class="p">,</span> <span class="s1">&#39;green&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="color"><a class="viewcode-back" href="../auxillary.html#auxillary.color">[docs]</a><span class="k">def</span> <span class="nf">color</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Colors: red, green, blue, yellow, magenta, cyan, white</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">termcolor</span><span class="o">.</span><span class="n">colored</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span></div>
+
+
+<span class="c1"># def binaryInputDecision(prompt, exit_param, fun):</span>
+<span class="c1">#     answer = input(prompt)</span>
+
+<span class="c1">#     if answer is exit_param:</span>
+<span class="c1">#         sys.exit(&quot;Exiting&quot;)</span>
+<span class="c1">#     else:</span>
+<span class="c1">#         fun(answer)</span>
+
+<div class="viewcode-block" id="generateDictionary"><a class="viewcode-back" href="../auxillary.html#auxillary.generateDictionary">[docs]</a><span class="k">def</span> <span class="nf">generateDictionary</span><span class="p">(</span><span class="n">dic</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    args should be a list of string arguments to identify what attributes</span>
+<span class="sd">    one would like to keep in the dictionary. this list should have the</span>
+<span class="sd">    attributes for every object expected to be found</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">dic</span> <span class="o">=</span> <span class="n">dic</span><span class="o">.</span><span class="vm">__dict__</span>
+
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">dic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">generateDictionary</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">Parameter</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">generateDictionary</span><span class="p">(</span><span class="n">val</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="n">D</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+    <span class="k">return</span> <span class="n">D</span></div>
+
+
+<div class="viewcode-block" id="parameter_lists"><a class="viewcode-back" href="../auxillary.html#auxillary.parameter_lists">[docs]</a><span class="k">def</span> <span class="nf">parameter_lists</span><span class="p">(</span><span class="n">dic</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the entire parameter set for the on and off state</span>
+<span class="sd">    parameter sets seperately</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params_on</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">params_off</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">,</span> <span class="n">vals</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">dic</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+        <span class="n">params_on</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">vals</span><span class="p">)</span> <span class="k">if</span> <span class="n">val</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]]</span>
+        <span class="n">params_off</span> <span class="o">=</span> <span class="p">[</span><span class="n">param</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span> <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">params_on</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">params_on</span><span class="p">,</span> <span class="n">params_off</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">strahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Joshua Swerdlow.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

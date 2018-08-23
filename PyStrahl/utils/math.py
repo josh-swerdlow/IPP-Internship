@@ -102,7 +102,7 @@ def integrate_netcdf(variable_, integrat_dim):
     return integrated_data
 
 
-def scale_netcdf(variable_, signal_scale):
+def scale_netcdf(variable_, signal_scale, background_scale):
     """Scales a netcdf variable's data.
 
     Be warned, this method overwrites the appropriate attributes of the
@@ -126,7 +126,12 @@ def scale_netcdf(variable_, signal_scale):
         scaled_data = np.multiply(signal_scale, data)
         scaled_units = "({}) * {}".format(units, signal_scale)
     else:
-        sys.exit("signal_scale must be > 0.")
+        sys.exit("signal_scale must be > 0: {}".format(signal_scale))
+
+    if background_scale > 0:
+        scaled_data += background_scale
+    else:
+        sys.exit("background_scale must be > 0: {}".format(background_scale))
 
     # Rewrite data and units
     variable_.data = scaled_data
@@ -135,7 +140,7 @@ def scale_netcdf(variable_, signal_scale):
     return scaled_data
 
 
-def noise_netcdf(variable_, noise_scale, background_scale):
+def noise_netcdf(variable_, noise_scale):
     """Adds scaled Gaussian noise to a netcdf variables data
 
     Be warned, this method overwrites the appropriate attributes of the
@@ -155,7 +160,7 @@ def noise_netcdf(variable_, noise_scale, background_scale):
     data = variable_.data
 
     # Calculate sigmas
-    sigmas = np.sqrt(data + background_scale)
+    sigmas = np.sqrt(data)
 
     # Calculate noise with a normal distribution centered at 0.0
     noise = noise_scale * np.random.normal(scale=sigmas, size=data.shape)
@@ -168,7 +173,7 @@ def noise_netcdf(variable_, noise_scale, background_scale):
 
 
 def generate_signal(variable_, charge_index, integrat_dim,
-                    signal_scale, noise_scale, background_scale):
+                    signal_scale, background_scale, noise_scale):
     """Selects a charge state, naively integrates over a dimension,
     scales, and then finally adds scaled poisson noise to
     a netcdf variables data
@@ -197,15 +202,16 @@ def generate_signal(variable_, charge_index, integrat_dim,
 
     profile = integrate_netcdf(variable_, integrat_dim=integrat_dim)
 
-    scaled_profile = scale_netcdf(variable_, signal_scale=signal_scale)
+    scaled_profile = scale_netcdf(variable_, signal_scale=signal_scale,
+                                  background_scale=background_scale)
 
-    signal, sigma = noise_netcdf(variable_, noise_scale=noise_scale,
-                                 background_scale=background_scale)
+    signal, sigma = noise_netcdf(variable_, noise_scale=noise_scale)
 
     return (profile, scaled_profile, signal, sigma)
 
 
-def generate_profile(variable_, charge_index, integrat_dim, signal_scale):
+def generate_profile(variable_, charge_index, integrat_dim, signal_scale,
+                     background_scale):
     """Selects a charge state, naively integrates over a dimension,
     and scales a netcdf variables data.
 
@@ -231,107 +237,9 @@ def generate_profile(variable_, charge_index, integrat_dim, signal_scale):
 
     profile = integrate_netcdf(variable_, integrat_dim=integrat_dim)
 
-    scaled_profile = scale_netcdf(variable_, signal_scale=signal_scale)
+    scaled_profile = scale_netcdf(variable_, signal_scale=signal_scale,
+                                  background_scale=background_scale)
 
     return (profile, scaled_profile)
-
-
-def plot_sigmas(x, sigma, show=False, fn=None):
-
-    plt.title("Signal Error")
-
-    plt.scatter(x, sigma)
-
-    plt.legend(["Weightings"])
-
-    if fn is not None and isinstance(fn, str):
-        plt.savefig("./plots/" + fn)
-
-    if show:
-        plt.show()
-
-
-def plot_error(x_knots, y_knots, perror, show=False, fn=None):
-
-    plt.figure("Error")
-    plt.title("Error")
-
-    plt.errorbar(x_knots, y_knots,
-                fmt='o-', ecolor='r', yerr=perror)
-
-    plt.legend(["Fit with error"])
-
-    if fn is not None and isinstance(fn, str):
-        plt.savefig("./plots/" + fn)
-
-    if show:
-        plt.show()
-
-
-def plot_signal_fit(time, signal, fit_val,
-                    x_knots, y_knots, perror,
-                    show=False, fn=None):
-
-    # Title formatting
-    plt.figure("Fitted Plot")
-    plt.title("Fitted f(x)")
-
-    plt.plot(time, signal, time, fit_val, 'k.')
-
-    plt.errorbar(x_knots, y_knots,
-                fmt='o-', ecolor='r', yerr=perror)
-
-    plt.legend(["Experimental Signal", "Fitted Estimate", "Knots with error"])
-
-    if fn is not None and isinstance(fn, str):
-        plt.savefig("./plots/" + fn)
-
-    if show:
-        plt.show()
-
-def plot_w_residual_sq(x, weighted_residual_squared, show=False, fn=None):
-    plt.plot(x, weighted_residual_squared)
-    plt.legend(['weighted_residual_squared'])
-    plt.xlabel("Rho")
-
-    if fn is not None and isinstance(fn, str):
-        plt.savefig("./plots/" + fn)
-
-    if show:
-        plt.show()
-
-def plot_residual_sq(x, residual_squared, show=False, fn=None):
-    plt.plot(x, residual_squared)
-    plt.legend(['residual_squared'])
-    plt.xlabel("Rho")
-
-    if fn is not None and isinstance(fn, str):
-        plt.savefig("./plots/" + fn)
-
-    if show:
-        plt.show()
-
-def plot_w_residual(x, weighted_residual, show=False, fn=None):
-    plt.plot(x, weighted_residual)
-    plt.legend(['weighted_residual'])
-    plt.xlabel("Rho")
-
-    if fn is not None and isinstance(fn, str):
-        plt.savefig("./plots/" + fn)
-
-    if show:
-        plt.show()
-
-def plot_residual(x, residual, show=False, fn=None):
-    plt.plot(x, residual)
-    plt.legend(['residual'])
-    plt.xlabel("Rho")
-
-    if fn is not None and isinstance(fn, str):
-        plt.savefig("./plots/" + fn)
-
-    if show:
-        plt.show()
-
 
 

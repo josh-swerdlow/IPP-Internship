@@ -3,19 +3,17 @@
 *__pycache__
 
 # Directories
-deprecated/**
-nete/**
-param_files/**
-summaries/**
-result/**
 mirmpfit/**
-toy_model/**
 
-# Python Files
-peter_chisquaredfitter.py
-toy_model.py
+# Python files
+strahl_fit.py
 
-# Unclassified Files
-test_input
-fit_update_input
+# Anything with the word test in it
+*test*
 
+# Itself
+.gitignore
+
+# Log files
+josh-log.rst
+task_board.rst

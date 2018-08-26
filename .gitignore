@@ -11,9 +11,6 @@ strahl_fit.py
 # Anything with the word test in it
 *test*
 
-# Itself
-.gitignore
-
 # Log files
 josh-log.rst
 task_board.rst

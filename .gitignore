@@ -4,7 +4,6 @@
 
 # Directories
 deprecated/**
-docs/**
 nete/**
 param_files/**
 summaries/**

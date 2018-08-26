@@ -1,3 +1,22 @@
+########################################
+# File name: math.py                   #
+# Author: Joshua Swerdow               #
+# Date created: 8/21/2018              #
+# Date last modified:                  #
+# Python Version: 3.0+                 #
+########################################
+
+__doc__ = """
+          This module contains custom made objects which are specifically
+          created to be passed as arguments into high level methods. These
+          objects (Function, Residual, and Splines) mostly wrap around the
+          obvious method, class, or mathematical object and add metadata,
+          methods, and class method initializers for specific use cases.
+          """
+
+__author__ = "Joshua Swerdow"
+
+
 import os
 import sys
 
@@ -5,8 +24,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from copy import copy
-from PyStrahl.core import strahl
 from PyStrahl.utils import math
+from PyStrahl.core import strahl
 from scipy.interpolate import InterpolatedUnivariateSpline
 
 FLOAT_MIN_VAL = sys.float_info.min
@@ -15,10 +34,8 @@ FLOAT_ABS_MIN = FLOAT_MIN_VAL * FLOAT_EPSILON
 
 
 class Function:
-    """Create a Function object that stores certain features of the
-    given function; such as, the given free parameters. In addition,
-    one can evaluate the function over a range and add noise sampled
-    from given normal distribution.
+    """Create a Function object that stores features of the
+    given function.
 
     """
     rndst = np.random.RandomState(0)
@@ -29,6 +46,13 @@ class Function:
         """Initializes the Function object
 
         Attributes:
+            name (str): a custom made string name for the object
+            math (str): A variable format string of the equation that
+                represents the function.
+
+                Example: y = m * x + b --> math = "mx+b" or "m*x+b"
+            func ()
+
             * **indep_param** (str): name of indepedent variable
             * **func** (Function obj): function that has the free
                 parameters input.
@@ -387,7 +411,27 @@ class Function:
 
     @classmethod
     def linear(cls, m, b, parameterization=None):
-        """Creates a linear Function object"""
+        """Creates a linear Function object of the form f(x) = m * x + b
+
+        Args:
+            m (int or float): Slope of the function
+            b (int or float): y intercept of the function
+            parameterization (:obj:Function): A parameterization function
+                to initiate a parameterized linear function.
+
+                Example:
+
+                    If our linear function is f(x) = 5x + 1
+                    and our parameterization function is g(x) = 2x - 1;
+
+                    then we will parameterize f(x) with g(x) as f(g(x))
+                    such that f(g(x)) = f(x) = 5 (2x - 1) + 1 = 10x - 4
+
+        Returns:
+            A Function object for a linear mathematical function (with a
+            parameterization if specified).
+
+        """
         print("Creating a linear function...")
 
         name = "linear"
@@ -402,22 +446,44 @@ class Function:
 
     @classmethod
     def quadratic(cls, a, b, c, parameterization=None):
-        """Creates a quadratic Function object"""
+        """Creates a quadratic Function object of the form
+        f(x) = a*x^2 + b*x + c
+
+        Args:
+            a (int or float): second order coefficient
+            b (int or float): first order coefficient
+            c (int or float): zeroth order coefficient
+            parameterization (:obj:Function): A parameterization function
+                to initiate a parameterized quadratic function.
+
+                Example:
+
+                    If our quadratic function is f(x) = 5x^2 + 1
+                    and our parameterization function is g(x) = 2x;
+
+                    then we will parameterize f(x) with g(x) as f(g(x))
+                    such that f(g(x)) = f(x) = 5 (2x)^2 + 1 = 20x^2 + 1
+
+        Returns:
+            A Function object for a quadratic mathematical function (with a
+            parameterization if specified).
+
+        """
         print("Creating a quadratic function...")
 
         name = "quadratic"
         if a != 0:
-            name = "2nd order quadratic"
+            name = "2nd order polynomial"
             if parameterization is not None:
                 name = name + " with parameterization"
 
         elif b != 0:
-            name = "1st order quadratic"
+            name = "1st order polynomial"
             if parameterization is not None:
                 name = name + " with parameterization"
 
         else:
-            name = "0th order quadratic"
+            name = "0th order polynomial"
             if parameterization is not None:
                 name = name + " with parameterization"
 
@@ -429,7 +495,16 @@ class Function:
 
     @classmethod
     def constant(cls, a):
-        """Creates a constant Function object"""
+        """Creates a constant Function object of the form f(x) = a
+
+        Note that constant functions cannot be parameterized.
+
+        Args:
+            a (int or float): The constant value of the function
+
+        Returns:
+            A Function object for a constant mathematical function.
+        """
         print("Creating a constant function...")
 
         if a is None:
@@ -442,14 +517,45 @@ class Function:
 
     @classmethod
     def noise(cls, sigma_background, scale_factor, parameterization=None):
-        """Creates a noise Function object"""
+        """Creates a noise Function object of the form
+        f(Intensity) = N(0, sigma_background) + N(0, scale_factor * Intensity)
+
+        Note: N(loc, scale) is the syntax used to describe a normal distribution
+        centered at loc with a width of scale.
+
+        Args:
+            sigma_background (int or float): Background noise signal scaling
+            scale_factor (int or float): Intensity noise signal scaling
+            parameterization (:obj:Function): A parameterization function
+                to initiate a parameterized noise function.
+
+                Example:
+
+                    If our noise function is
+                    f(Intensity) = N(0, 1) + N(0, 2 * Intensity)
+                    and our parameterization function is
+                    g(Intensity) = (2 * Intensity) - 1;
+
+                    then we will parameterize f(Intensity) with g(Intensity)
+                    as f(g(Intensity)) such that
+                    f(g(Intensity)) =
+                       f(Intensity) = N(0, 1) + N(0, 2 * (2 * Intensity - 1))
+                                    = N(0, 1) + N(0, 4 * Intensity - 2)
+
+        Returns:
+            A Function object for a mathematical function to model noise (with a
+            parameterization if specified).
+
+        """
         print("Creating a noise function...")
 
         name = "noise"
         if sigma_background != 0 and scale_factor == 0:
             name = "constant background noise"
+
         elif scale_factor != 0:
             name = name + " scaled with intensity"
+
             if parameterization is not None:
                 name = "parameterized " + name
 
@@ -462,241 +568,59 @@ class Function:
 
     @staticmethod
     def _linFunc(x, m, b):
-        """A linear function"""
+        """A linear function
+
+        Args:
+            x (int or float array): The independent variable
+            m (int or float): The slope of the function
+            b (int or float): The y intercept of the function
+
+        Returns:
+            The value of some linear function for a given vector of values
+        """
         return m * x + b
 
     @staticmethod
     def _quadFunc(x, a, b, c):
-        """A quadratic function"""
+        """A quadratic function
+
+        Args:
+            x (int or float array): The independent variable
+            a (int or float): The second order coefficient
+            b (int or float): The first order coefficient
+            c (int or float): The zeroth order coefficient
+
+        Returns:
+            The value of some quadratic function for a given vector of values.
+        """
         return a * x**2 + b * x + c
 
     @staticmethod
     def _constFunc(a):
-        """A constant function"""
+        """A constant function
+
+        Args:
+            a (int or float): The constant value of the function
+
+        Returns:
+            As this is a constant function, it always returns itself.
+        """
         return a
 
     @staticmethod
     def _noiseFunc(intensity, sig, A):
-        """A noise function that scales with some intensity function"""
+        """A noise function that scales with some intensity parameter
+
+        Args:
+            intensity (int or float array): The signal intensity
+            sig (int or float): The background noise signal scaling
+            A (int or float): The intensity noise signal scaling
+
+        Returns:
+            A simple model for the noise of a given vector of intensities
+        """
         return (np.random.normal(0, sig, len(intensity)) +
                 np.random.normal(0, np.sqrt(A * intensity), len(intensity)))
-
-
-class Residuals:
-
-    def __init__(self, spline_, x=None, y=None, sigma=None, verbose=False):
-        """
-        Initializes a Residuals object which can calculate
-        various parameters (weighted_residual, unweight_residual,
-        residual, chi_squared, and reduced chi_squared)
-        """
-        self.spline_ = spline_
-
-        if x is None:
-            print("x is NoneType. Use Residuals.set() to assign a value.")
-        else:
-            self.x = x
-
-        if y is None:
-            print("y is NoneType. Use Residuals.set() to assign a value.")
-        else:
-            self.y = y
-
-        if sigma is None:
-            print("sigma is NoneType. Use Residuals.set() to assign a value.")
-        else:
-            self.sigma = sigma
-
-        self.verbose = verbose
-        if self.verbose:
-            print("Executing with verbose output.")
-
-    def __call__(self, coeffs=None, x=None, y=None, sigma=None):
-
-        if coeffs is not None:
-            self.re_init_spline(y=coeffs)
-
-        return self.residual(x=x, y=y, sigma=sigma)
-
-    def __str__(self):
-        residual_str = ("residual attributes: {}\n\nspline attributes: {}"
-                        .format(self.__dict__, self.spline_.__dict__))
-
-        return str(residual_str)
-
-    def re_init_spline(self, x=None, y=None, params=None):
-        self.spline_ = self.spline_.re_init(x=x, y=y, params=params)
-
-    def set(self, spline_=None, x=None, y=None, sigma=None):
-        if spline_ is not None:
-            print("Assigned spline_ to {}".format(spline_))
-            self.spline_ = spline_
-
-        if x is not None:
-            print("Assigned x to {}".format(x))
-            self.x = x
-
-        if y is not None:
-            print("Assigned y to {}".format(y))
-            self.y = y
-
-        if sigma is not None:
-            print("Assigned sigma to {}".format(sigma))
-            self.sigma = sigma
-
-    def residual(self, x=None, y=None, sigma=None, weighted=True):
-        """
-        Calculates either the weighted or unweighted residual
-        of the data stored in the Residuals object
-
-        Notes:
-
-        The function executes in the following way depending and
-        the parameters given.
-        For x, if:
-            x is a param     and x is an attribute     --> use param
-            x is a param     and x is not an attribute --> use param
-            x is not a param and x is an attribute     --> use attribute
-            x is not a param and x is not an attribute --> exit
-        """
-
-        if x is not None or hasattr(self, 'x'):
-            if x is None:
-                if self.verbose:
-                    print("Using the attribute x.")
-
-                x = self.x
-
-            else:
-                if self.verbose:
-                    print("Using parameter x.")
-
-        else:
-            sys.exit("Residual requires a x value.")
-
-        if y is not None or hasattr(self, 'y'):
-            if y is None:
-                if self.verbose:
-                    print("Using the attribute y.")
-
-                y = self.y
-
-            else:
-                if self.verbose:
-                    print("Using parameter y.")
-
-        else:
-            sys.exit("Residual requires a y value.")
-
-        if sigma is not None or hasattr(self, 'sigma'):
-            if sigma is None:
-                if self.verbose:
-                    print("Using the attribute sigma.")
-
-                sigma = self.sigma
-
-            else:
-                if self.verbose:
-                    print("Using parameter sigma.")
-
-        elif not weighted:
-            if self.verbose:
-                print("Calculating unweighted residual, sigma not needed.")
-
-            sigma = 1
-
-        else:
-            sys.exit("Residual requires a sigma value.")
-
-        return np.divide((y - self.spline_(x)), sigma)
-
-    def residual_squared(self, weighted=True):
-        """
-        Calculates either the weighted or unweighted squared
-        residual of the data stored in the Residuals object
-        """
-
-        if not weighted:
-            sigma = 1
-        else:
-            sigma = self.sigma
-
-        return np.square(self.y - self.spline_(self.x)) / sigma
-
-    def chi_squared(self):
-        """
-        Calculates the chi-squared over the data stored in the
-        Residuals object
-
-        The chi-squared is the sum of the weighted squared residuals.
-                :math: sum_i( (y - y_)^2 / w)
-        """
-
-        return np.sum(self.residual_squared(weighted=True))
-
-    def reduced_chi_squared(self, n=None, m=None, v=None):
-        """
-        Calculates the reduced chi-squared over the data
-        stored in the Residuals object.
-
-        The reduced chi-squared is the chi-squared divided by
-        the degrees of freedom.
-                :math: chi-squared / v
-
-        The degrees of freedom (v) are the number of observations (n)
-        minus the number of fitted parameters (m).
-                :math: v = n - m
-
-        """
-
-        # If nothing is provided
-        if n is None and m is None and v is None:
-            sys.exit("Reduced chi_squared expects either the number of " +
-                  "observations and number of fitted parameters or " +
-                  "the degrees of freedom. Currently none are given.")
-
-        # If n and m are provided and v is not calculte v = n - m
-        # otherwise use the v provided
-        if n is not None and m is not None:
-            if v is None:
-                v = n - m
-
-        # If n or m are not provided, then v must be provided
-        if n is None or m is None:
-            if v is None:
-                sys.exit("Number of observations or number of fitted " +
-                         "parameters and degrees of freedom are none.")
-
-        return (self.chi_squared() / v)
-
-    def plot_residual(self, weighted=True, squared=False, hold=False):
-        """
-        Plots one of the following: weighted residual,
-        unweighted residual, weighted residual squared,
-        unweighted residual squared.
-        """
-
-        if squared:
-            residuals = self.residual_squared(weighted)
-            figure_str = "Residual Squared"
-
-        else:
-            residuals = self.residual(weighted)
-            figure_str = "Residual"
-
-        if weighted:
-            figure_str = "Weighted " + figure_str
-        else:
-            figure_str = "Unweighted " + figure_str
-            residuals = self.sigma * residuals
-
-        plt.figure(figure_str)
-        plt.title(figure_str)
-        plt.scatter(self.x, residuals)
-        plt.legend([figure_str])
-
-        if not hold:
-            plt.show()
 
 
 class Residual:

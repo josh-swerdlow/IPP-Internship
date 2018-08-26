@@ -1,8 +1,22 @@
-# import sys
-# sys.path.append("./source")
+########################################
+# File name: strahl_fit.py             #
+# Author: Joshua Swerdow               #
+# Date created: 8/21/2018              #
+# Date last modified:                  #
+# Python Version: 3.0+                 #
+########################################
 
-# import matplotlib
-# matplotlib.use('PDF')
+__doc__ = """This package provides essential mathematical methods
+             required to execute the strahl analysis"""
+
+__author__ = "Joshua Swerdow"
+
+
+import sys
+sys.path.append("./source")
+
+import matplotlib
+matplotlib.use('PDF')
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,20 +27,24 @@ from PyStrahl.analysis.models import Least_Square
 from PyStrahl.analysis.data import Splines, Residual
 
 
+def plots(sum_fn):
+    summary_ = editor.SummaryFileEditor(sum_fn, verbosity=True)
+
+    results = summary_.get()
+
+    print(results.keys())
+
+
+
 def strahl_fit_least_square_data(sum_fn):
     index = 0
     dim = 'grid_points'
 
-    signal, rho_pol_grid, sigma = generate_experimental_signal(index, dim)
+    signal, rho_pol_grid, time, sigma = generate_experimental_signal(index, dim)
 
     summary_ = editor.SummaryFileEditor(sum_fn, verbosity=True)
 
-    strahl_fit_least_square(summary_, signal, rho_pol_grid, sigma, index, dim)
-
-    fit_info = summary_.get()
-
-    print(fit_info)
-
+    strahl_fit_least_square(summary_, signal, rho_pol_grid, time, sigma, index, dim)
 
 # G E N E R A T E  E X P E R I M E N T A L  S I G N A L
 def generate_experimental_signal(index, dim):
@@ -99,8 +117,8 @@ def generate_experimental_signal(index, dim):
                                           charge_index=index,
                                           integrat_dim=dim,
                                           signal_scale=signal_scale,
-                                          noise_scale=noise_scale,
-                                          background_scale=background_scale)
+                                          background_scale=background_scale,
+                                          noise_scale=noise_scale)
 
     profile, scaled_profile, signal, sigma = signal_outputs
 
@@ -115,11 +133,11 @@ def generate_experimental_signal(index, dim):
 
     plt.savefig('./plots/initial_profiles.pdf')
 
-    return signal, rho_pol_grid, sigma
+    return signal, rho_pol_grid, time, sigma
 
 
 # F I T T I N G  L O O P
-def strahl_fit_least_square(summary_, signal, rho_pol_grid, sigma, index, dim):
+def strahl_fit_least_square(summary_, signal, rho_pol_grid, time, sigma, index, dim):
     print("F I T T I N G  L O O P")
     rho_pol_knots = [rho_pol_grid[0], rho_pol_grid[-1]]
 
@@ -165,6 +183,7 @@ def strahl_fit_least_square(summary_, signal, rho_pol_grid, sigma, index, dim):
     for parname, guess in zip(parnames, guesses):
         dic = dict()
 
+        dic['value'] = guess
         dic['fixed'] = True
         dic['parname'] = parname
         dic['step'] = STEP
@@ -194,5 +213,14 @@ def strahl_fit_least_square(summary_, signal, rho_pol_grid, sigma, index, dim):
 
     mdl.fit(coeffs=guesses)
 
-    summary_.write(mdl.__dict__)
+    summary_.write(mdl.results())
+
+if __name__ == '__main__':
+    index = 0
+    dim = 'grid_points'
+
+    sum_fn = "test_summary.json"
+
+    strahl_fit_least_square_data(sum_fn)
+
 

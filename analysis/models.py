@@ -1,15 +1,26 @@
+########################################
+# File name: math.py                   #
+# Author: Joshua Swerdow               #
+# Date created: 8/21/2018              #
+# Date last modified:                  #
+# Python Version: 3.0+                 #
+########################################
+
+__doc__ = """This package provides essential mathematical methods
+             required to execute the strahl analysis"""
+
+__author__ = "Joshua Swerdow"
+
 # Python file containing our different models:
 #   1. Markov Chain Monte Carlo
 #   2. Gaussian Process
 #   3. Least Square
 #   4. Combination of 1 and 2
 
-# Each of these will be given netCDF data groups composed of
-# stuff and they will have freeParams etc stuff stuf stuff ugh
-# every variable must have its units corrected to SI before hand
+
 import sys
 
-# import pymc3 as pm
+import pymc3 as pm
 import matplotlib.pyplot as plt
 
 from PyStrahl.mirmpfit import mpfit

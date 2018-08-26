@@ -21,10 +21,10 @@ matplotlib.use('PDF')
 import numpy as np
 import matplotlib.pyplot as plt
 
-from PyStrahl.utils import math
-from PyStrahl.core import strahl, editor
-from PyStrahl.analysis.models import Least_Square
-from PyStrahl.analysis.data import Splines, Residual
+from utils import math
+from core import strahl, editor
+from analysis.models import Least_Square
+from analysis.data import Splines, Residual
 
 
 def plots(sum_fn):

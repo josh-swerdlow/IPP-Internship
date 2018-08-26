@@ -1,3 +1,5 @@
+.. _josh_log:
+
 This will act as an internal log for all of my (Josh Swerdlow) work on PyStrahl.
 
 Current Tasks:

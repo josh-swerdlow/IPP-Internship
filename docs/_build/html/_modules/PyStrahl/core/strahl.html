@@ -1,0 +1,788 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>PyStrahl.core.strahl &#8212; PyStrahl 1.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">PyStrahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for PyStrahl.core.strahl</h1><div class="highlight"><pre>
+<span></span><span class="c1">########################################</span>
+<span class="c1"># File name: parameters.py             #</span>
+<span class="c1"># Author: Joshua Swerdow               #</span>
+<span class="c1"># Date created: 5/20/2018              #</span>
+<span class="c1"># Date last modified:                  #</span>
+<span class="c1"># Python Version: 3.0+                 #</span>
+<span class="c1">########################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Summary: This will load the parameter files to be worked with.</span>
+
+<span class="sd">Details: Calls the local private function _loadParamFile</span>
+<span class="sd">    to load</span>
+
+<span class="sd">To Do:</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Joshua Swerdow&#39;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="k">import</span> <span class="n">netcdf</span>
+
+<span class="kn">from</span> <span class="nn">PyStrahl.utils</span> <span class="k">import</span> <span class="n">query</span>
+<span class="kn">from</span> <span class="nn">PyStrahl.utils.auxillary</span> <span class="k">import</span> <span class="n">print_directory</span><span class="p">,</span> <span class="n">parameter_lists</span>
+<span class="kn">from</span> <span class="nn">PyStrahl.core.editor</span> <span class="k">import</span> <span class="p">(</span><span class="n">ParameterFileEditor</span><span class="p">,</span>
+                                  <span class="n">InputFileEditor</span><span class="p">,</span>
+                                  <span class="n">SummaryFileEditor</span><span class="p">)</span>
+
+
+<span class="c1"># TODO:</span>
+<span class="c1"># General:</span>
+<span class="c1">#   Autocompletion to file entry?</span>
+<span class="c1">#</span>
+<span class="c1"># strahl_interface:</span>
+<span class="c1">#   Add: ability to write in any strahl_interf input from cmd line or txt file</span>
+<span class="c1">#       so every single input parameter for every function should be written</span>
+<span class="c1">#       in the main file, but left untouched for the most part.</span>
+<span class="c1">#   Make &#39;prompt&#39; parts of code into some sort of query function that</span>
+<span class="c1">#       can accept help (h, help, H, etc) inputs</span>
+<span class="c1">#   Add HDF5 integration</span>
+
+<span class="c1"># Parameters: Go through with Peter</span>
+<span class="c1">#   Add all parameters to main, background files</span>
+<span class="c1">#   Add/Create parameters for geometry/flux(?)</span>
+<span class="c1">#   Fix parameters that have one header for multiple parameters: Parameter</span>
+<span class="c1">#   Parameters with the same name within a file</span>
+
+
+<div class="viewcode-block" id="interface"><a class="viewcode-back" href="../../../strahl.html#PyStrahl.core.strahl.interface">[docs]</a><span class="k">def</span> <span class="nf">interface</span><span class="p">(</span><span class="n">main_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">bckg_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">geom_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flux_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">inpt_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">summ_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">execute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs through an interactive, self-checking, interface for creating STRAHL</span>
+<span class="sd">    input files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">main_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;-main_fn&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-main_fn&quot;</span><span class="p">)</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">main_fn</span> <span class="o">=</span> <span class="n">file_name</span>
+
+    <span class="k">if</span> <span class="n">bckg_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;-bckg_fn&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-bckg_fn&quot;</span><span class="p">)</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">bckg_fn</span> <span class="o">=</span> <span class="n">file_name</span>
+
+    <span class="k">if</span> <span class="n">geom_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;-geom_fn&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-geom_fn&quot;</span><span class="p">)</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">geom_fn</span> <span class="o">=</span> <span class="n">file_name</span>
+
+    <span class="k">if</span> <span class="n">flux_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;-flux_fn&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-flux_fn&quot;</span><span class="p">)</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">flux_fn</span> <span class="o">=</span> <span class="n">file_name</span>
+
+    <span class="k">if</span> <span class="n">inpt_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;-inpt_fn&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-inpt_fn&quot;</span><span class="p">)</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">inpt_fn</span> <span class="o">=</span> <span class="n">file_name</span>
+
+    <span class="k">if</span> <span class="n">summ_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">file_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;-summ_fn&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-summ_fn&quot;</span><span class="p">)</span>
+            <span class="n">file_name</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">summ_fn</span> <span class="o">=</span> <span class="n">file_name</span>
+
+    <span class="k">if</span> <span class="s2">&quot;-e&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="n">execute</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="s2">&quot;-v&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">verbose</span> <span class="o">=</span> <span class="n">verbosity</span>
+
+    <span class="n">main_editor</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">bckg_editor</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">geom_editor</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">flux_editor</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">inpt_editor</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">summ_editor</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">parameter_editors</span> <span class="o">=</span> <span class="n">ParameterFileEditor</span><span class="o">.</span><span class="n">create_editors</span><span class="p">(</span><span class="n">main_fn</span><span class="p">,</span> <span class="n">bckg_fn</span><span class="p">,</span>
+                                                           <span class="n">geom_fn</span><span class="p">,</span> <span class="n">flux_fn</span><span class="p">,</span>
+                                                           <span class="n">verbosity</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="n">main_editor</span><span class="p">,</span> <span class="n">bckg_editor</span><span class="p">,</span> <span class="n">geom_editor</span><span class="p">,</span> <span class="n">flux_editor</span> <span class="o">=</span> <span class="n">parameter_editors</span>
+
+    <span class="n">inpt_editor</span> <span class="o">=</span> <span class="n">InputFileEditor</span><span class="p">(</span><span class="n">inpt_fn</span><span class="o">=</span><span class="n">inpt_fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="n">summ_editor</span> <span class="o">=</span> <span class="n">SummaryFileEditor</span><span class="p">(</span><span class="n">sum_fn</span><span class="o">=</span><span class="n">summ_fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">editor</span> <span class="ow">in</span> <span class="n">parameter_editors</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">editor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">editor</span><span class="o">.</span><span class="n">search_parameter_file</span><span class="p">()</span>
+
+    <span class="c1"># Load the summary file into a new object and extract relevant features</span>
+    <span class="c1"># into a set data structure</span>
+    <span class="n">summ_dict</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">summ_on</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">summ_off</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">parameter_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">editor</span> <span class="ow">in</span> <span class="n">parameter_editors</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">editor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="n">editor</span><span class="o">.</span><span class="n">parameter_file</span>
+
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Iterating through parameter files: </span><span class="si">{}</span><span class="s2">&quot;</span>
+                      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">type</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">summ_editor</span><span class="o">.</span><span class="n">loadable</span><span class="p">:</span>
+                <span class="n">summ_dict</span> <span class="o">=</span> <span class="n">summ_editor</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+                <span class="n">sum_param</span> <span class="o">=</span> <span class="n">summ_dict</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">type</span><span class="p">][</span><span class="s1">&#39;param_dict&#39;</span><span class="p">]</span>
+
+                <span class="n">summ_on</span><span class="p">,</span> <span class="n">summ_off</span> <span class="o">=</span> <span class="n">parameter_lists</span><span class="p">(</span><span class="n">sum_param</span><span class="p">)</span>
+
+            <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;fn&#39;</span><span class="p">,</span> <span class="s1">&#39;parameter_dict&#39;</span><span class="p">]</span>
+            <span class="n">param_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;value&#39;</span><span class="p">,</span> <span class="s1">&#39;state&#39;</span><span class="p">]</span>
+
+            <span class="c1"># Extract the parameters of a given parameter file</span>
+            <span class="n">file_dict</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">attribute_dictionary</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">param_keys</span><span class="p">)</span>
+
+            <span class="n">file_param</span> <span class="o">=</span> <span class="n">file_dict</span><span class="p">[</span><span class="s1">&#39;parameter_dict&#39;</span><span class="p">]</span>
+
+            <span class="c1"># Extract relevant parameter file features into a</span>
+            <span class="c1"># set data structure</span>
+            <span class="n">file_on</span><span class="p">,</span> <span class="n">file_off</span> <span class="o">=</span> <span class="n">parameter_lists</span><span class="p">(</span><span class="n">file_param</span><span class="p">)</span>
+
+            <span class="c1"># Perform operations to determine appropriate actions</span>
+            <span class="c1"># Change the value: param_on &amp; sum_on</span>
+            <span class="n">on_in_both</span> <span class="o">=</span> <span class="p">[</span><span class="n">param</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">file_on</span> <span class="k">if</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">summ_on</span><span class="p">]</span>
+
+            <span class="n">query_str</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Enter a new value for &#39;</span><span class="si">{}</span><span class="s2">&#39; or &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span>
+                <span class="s2">&quot;keep the same value (</span><span class="si">{}</span><span class="s2">) [enter]: &quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sum_param</span><span class="p">[</span><span class="n">x</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Iterating through parameters that are on in the &quot;</span> <span class="o">+</span>
+                      <span class="s2">&quot;summary and the parameter file.&quot;</span><span class="p">)</span>
+
+            <span class="n">checked</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">on_in_both</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">checked</span><span class="p">:</span>
+                    <span class="n">group</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">in_group</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">group</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">file</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Iterating through parameters in group </span><span class="si">{}</span><span class="s2">&quot;</span>
+                                  <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group</span><span class="p">))</span>
+
+                        <span class="n">vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+                        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
+                            <span class="c1"># Evaluate the user input</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">query_str</span><span class="p">(</span><span class="n">par</span><span class="p">))</span>
+
+                            <span class="c1"># Change the value in the parameter file dictionary</span>
+                            <span class="n">file</span><span class="o">.</span><span class="n">parameter_dict</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">change_value</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                            <span class="c1"># Append to our list</span>
+                            <span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                            <span class="c1"># Add to our checked list</span>
+                            <span class="n">checked</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="p">)</span>
+
+                        <span class="c1"># Change list to np.array and transpose for approriate</span>
+                        <span class="c1"># writing format into STRAHL</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+                        <span class="c1"># Add the val to the input files list of values</span>
+                        <span class="n">inpt_editor</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">query_str</span><span class="p">(</span><span class="n">param</span><span class="p">))</span>
+
+                        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">sum_param</span><span class="p">[</span><span class="n">param</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
+
+                        <span class="n">inpt_editor</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                        <span class="n">file</span><span class="o">.</span><span class="n">parameter_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">change_value</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                        <span class="n">checked</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+            <span class="c1"># Change the value: param_on - sum_ff</span>
+            <span class="n">param_on_sum_off</span> <span class="o">=</span> <span class="p">[</span><span class="n">param</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">file_on</span>
+                                <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">summ_off</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Iterating through parameters that are off in the &quot;</span> <span class="o">+</span>
+                      <span class="s2">&quot;summary and on in the parameter file.&quot;</span><span class="p">)</span>
+
+            <span class="n">query_str</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="s2">&quot;Enter your new value for &#39;</span><span class="si">{}</span><span class="s2">&#39;: &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+            <span class="n">checked</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">param_on_sum_off</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">param</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">checked</span><span class="p">:</span>
+                    <span class="n">group</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">in_group</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">group</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">file</span><span class="o">.</span><span class="n">groups</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">group</span><span class="p">)</span>
+
+                        <span class="n">vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+                        <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
+                            <span class="c1"># Evaluate the user input</span>
+                            <span class="n">val</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">query_str</span><span class="p">(</span><span class="n">par</span><span class="p">))</span>
+
+                            <span class="c1"># Change the value in the parameter file dictionary</span>
+                            <span class="n">file</span><span class="o">.</span><span class="n">parameter_dict</span><span class="p">[</span><span class="n">par</span><span class="p">]</span><span class="o">.</span><span class="n">change_value</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                            <span class="c1"># Append to our input list</span>
+                            <span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                            <span class="c1"># Add to our checked list</span>
+                            <span class="n">checked</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="p">)</span>
+
+                        <span class="c1"># Change list to np.array and transpose for approriate</span>
+                        <span class="c1"># writing format into STRAHL</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+
+                        <span class="c1"># Add the val to the input files list of values</span>
+                        <span class="n">inpt_editor</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">query_str</span><span class="p">(</span><span class="n">param</span><span class="p">))</span>
+
+                        <span class="n">inpt_editor</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                        <span class="n">file</span><span class="o">.</span><span class="n">parameter_dict</span><span class="p">[</span><span class="n">param</span><span class="p">]</span><span class="o">.</span><span class="n">change_value</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+                        <span class="n">checked</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+
+            <span class="n">parameter_dict</span><span class="p">[</span><span class="n">file</span><span class="o">.</span><span class="n">type</span><span class="p">]</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">attribute_dictionary</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span>
+                                                                  <span class="n">param_keys</span><span class="p">)</span>
+
+    <span class="c1"># Clean-up</span>
+    <span class="k">if</span> <span class="n">main_editor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: There is no main parameter file editor.&quot;</span><span class="p">)</span>
+        <span class="n">main_fn</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Please input a main file name: &quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">main_fn</span> <span class="o">=</span> <span class="n">main_editor</span><span class="o">.</span><span class="n">parameter_file</span><span class="o">.</span><span class="n">fn</span>
+
+    <span class="n">inpt_editor</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">main_fn</span><span class="p">)</span>
+    <span class="n">summ_editor</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">parameter_dict</span><span class="p">)</span>
+
+    <span class="c1"># Execute strahl</span>
+    <span class="k">if</span> <span class="n">execute</span><span class="p">:</span>
+        <span class="n">execute</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="quick_input_file"><a class="viewcode-back" href="../../../strahl.html#PyStrahl.core.strahl.quick_input_file">[docs]</a><span class="k">def</span> <span class="nf">quick_input_file</span><span class="p">(</span><span class="n">main_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inpt_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    WARNING WARNING WARNING</span>
+<span class="sd">    PLEASE READ BEFORE USE</span>
+<span class="sd">    Quick way to (re) write an input file given a list of inputs</span>
+<span class="sd">    in the order that you know they should be read in! If the given</span>
+<span class="sd">    input file already exists this method will remove the contents</span>
+<span class="sd">    and rewrite it given the new inputs. Please be careful as</span>
+<span class="sd">    there are NO SAFETY protocols in place to ensure the input file you</span>
+<span class="sd">    give are indeed input files (i.e. one could delete the wrong type</span>
+<span class="sd">    of file if passed through this method). You have been warned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">main_fn</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">inpt_fn</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">inputs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+
+    <span class="n">inpt_editor</span> <span class="o">=</span> <span class="n">InputFileEditor</span><span class="p">(</span><span class="n">inpt_fn</span><span class="o">=</span><span class="n">inpt_fn</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+                                  <span class="n">overwrite_flag</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                  <span class="n">verbosity</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="n">inpt_editor</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">main_fn</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../../strahl.html#PyStrahl.core.strahl.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">inpt_fns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">strahl_cmd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Runs strahl using an input file to fill in the parameters that have been</span>
+<span class="sd">    commented out from parameter files.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        * **inpt_fns** [list/str|None]: name(s) of the input file in a list or</span>
+<span class="sd">            string</span>
+<span class="sd">        * **strahl_cmd** [str|&quot;./strahl&quot;]: the command to run strahl which can</span>
+<span class="sd">            be replaced with different tags that are described in the user</span>
+<span class="sd">            manual.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">strahl_cmd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">strahl_cmd</span> <span class="o">=</span> <span class="s2">&quot;./strahl&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">strahl_cmd</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;./strahl&quot;</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Error: strahl command is of wrong format &quot;</span> <span class="o">+</span>
+                 <span class="s2">&quot;it should start with ./strahl&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">inpt_fns</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">print_directory</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">)</span>
+
+        <span class="n">prompt</span> <span class="o">=</span> <span class="s2">&quot;Enter and input file(s) seperated by space or exit [enter]: &quot;</span>
+        <span class="n">inpt_fns</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inpt_fns</span> <span class="ow">is</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Exiting&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Converts single and multi input strings to lists</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inpt_fns</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">inpt_fns</span> <span class="o">=</span> <span class="n">inpt_fns</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inpt_fns</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;TypeError: inpt_fns must be list or list of strings.&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">inpt_fn</span> <span class="ow">in</span> <span class="n">inpt_fns</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="s2">&quot;./&quot;</span> <span class="o">+</span> <span class="n">inpt_fn</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: ./</span><span class="si">{}</span><span class="s2"> is not a valid file&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">))</span>
+
+            <span class="n">inpt_fn</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter the correct file or exit [enter]: &quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">inpt_fn</span> <span class="ow">is</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;Exiting&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Executing: </span><span class="si">{}</span><span class="s2"> &lt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">strahl_cmd</span><span class="p">,</span> <span class="n">inpt_fn</span><span class="p">))</span>
+
+            <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">strahl_cmd</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">stdin</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+                             <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                             <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">output</span><span class="p">,</span> <span class="n">errmsg</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Output:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">errmsg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">errmsg</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="extract_results"><a class="viewcode-back" href="../../../strahl.html#PyStrahl.core.strahl.extract_results">[docs]</a><span class="k">def</span> <span class="nf">extract_results</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="s2">&quot;Festrahl_result.dat&quot;</span><span class="p">,</span>
+                    <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attributes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts results from appropriate netcdf groups given a list of item names</span>
+<span class="sd">    for any of the groups (&#39;variables&#39;, &#39;dimensions&#39;, &#39;_attributes&#39;)</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        * **result** [str]: A file path to the netCDF file</span>
+<span class="sd">        * **variables** [list|None]: A list of items names that must be</span>
+<span class="sd">            extracted from the variables group.</span>
+<span class="sd">        * **attributes** [list|None]: A list of items names that must be</span>
+<span class="sd">            extracted from the attributes group.</span>
+<span class="sd">        * **dimensions** [list|None]: A list of items names that must be</span>
+<span class="sd">            extracted from the dimensions group.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary containing the group name and a dictionary of</span>
+<span class="sd">        the items requested from the group object for each group given</span>
+<span class="sd">        to this function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;result&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">!=</span> <span class="n">path</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">variables</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="n">group_items</span> <span class="o">=</span> <span class="n">_extract_items_from_group</span><span class="p">(</span><span class="n">result</span><span class="p">,</span>
+                                                    <span class="s2">&quot;variables&quot;</span><span class="p">,</span>
+                                                    <span class="n">variables</span><span class="p">,</span>
+                                                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;variables&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">group_items</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: variables must be a list.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dimensions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dimensions</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="n">group_items</span> <span class="o">=</span> <span class="n">_extract_items_from_group</span><span class="p">(</span><span class="n">result</span><span class="p">,</span>
+                                                    <span class="s2">&quot;dimensions&quot;</span><span class="p">,</span>
+                                                    <span class="n">dimensions</span><span class="p">,</span>
+                                                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dimensions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">group_items</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: dimensions must be a list.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">attributes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
+            <span class="n">group_items</span> <span class="o">=</span> <span class="n">_extract_items_from_group</span><span class="p">(</span><span class="n">result</span><span class="p">,</span>
+                                                    <span class="s2">&quot;attributes&quot;</span><span class="p">,</span>
+                                                    <span class="n">attributes</span><span class="p">,</span>
+                                                    <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="s1">&#39;attributes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">group_items</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: attributes must be a list.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<span class="k">def</span> <span class="nf">_extract_items_from_group</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">group_type</span><span class="p">,</span> <span class="n">item_names</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts items from a netcdf group stored within STRAHL result</span>
+<span class="sd">    files.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        * **result** [str]: A file path to the netCDF file</span>
+
+<span class="sd">        * **verbose** [bool|False]: Determines if verbose execution is used</span>
+<span class="sd">        * **all** [bool|False]: Determines if entire information of netCDF file</span>
+<span class="sd">            should be printed</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary of netCDF item name and netCDF items for every</span>
+<span class="sd">        list of items. If a variable cannot be found in the result file,</span>
+<span class="sd">        then None is returned in its place.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">group_data</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">mmap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">group_type</span> <span class="ow">is</span> <span class="s2">&quot;variables&quot;</span><span class="p">:</span>
+                    <span class="n">group_</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">group_type</span> <span class="ow">is</span> <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span>
+                    <span class="n">group_</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">group_type</span> <span class="ow">is</span> <span class="s2">&quot;attributes&quot;</span><span class="p">:</span>
+                    <span class="n">group_</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">_attributes</span><span class="p">)</span>
+
+                <span class="n">group_</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">group_type</span>
+
+                <span class="n">group_data</span> <span class="o">=</span> <span class="n">_extract_items</span><span class="p">(</span><span class="n">group_</span><span class="p">,</span> <span class="n">item_names</span><span class="p">,</span>
+                                            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;File does not exist. Exiting.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">group_data</span>
+
+
+<span class="k">def</span> <span class="nf">_extract_items</span><span class="p">(</span><span class="n">group_</span><span class="p">,</span> <span class="n">item_names</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts specified items from a netcdf group object.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">        * **group_** [netcdf obj]: A netcdf object containing items</span>
+<span class="sd">        * **item_names** [list|None]: A list of item names to extract</span>
+<span class="sd">            from the group_ object</span>
+<span class="sd">        * **verbose** [bool|False]: determines if verbose execution is used</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A dictionary of the items name and items equivalent</span>
+<span class="sd">        to the length of the item_names. If a variable cannot be found</span>
+<span class="sd">        in the result file, then None is returned in its place.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">item_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: item_names for &#39;</span><span class="si">{}</span><span class="s2">&#39; group is empty. &quot;</span>
+              <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group_</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;Nothing returned.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">item_name</span> <span class="ow">in</span> <span class="n">item_names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">item_name</span> <span class="ow">in</span> <span class="n">group_</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">item_</span> <span class="o">=</span> <span class="n">group_</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item_name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item_</span><span class="p">,</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_variable</span><span class="p">):</span>
+                <span class="n">item_</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">item_name</span>
+
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Updating dictionary with </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_name</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> has attributes:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">--&gt; Name: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_name</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">--&gt; Units: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_</span><span class="o">.</span><span class="n">units</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">--&gt; Shape: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">--&gt; Dimensions: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_</span><span class="o">.</span><span class="n">dimensions</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">--&gt; Data: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_</span><span class="o">.</span><span class="n">data</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item_</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Updating dictionary with </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_name</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> has attributes:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_name</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">--&gt; Name: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_name</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">--&gt; Data: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">item_name</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span><span class="si">{var}</span><span class="s2"> was extracted already or is the name for</span>
+<span class="s2">                    multiple variables. </span><span class="si">{}</span><span class="s2"> will be overwritten.&quot;&quot;&quot;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">var</span><span class="o">=</span><span class="n">item_name</span><span class="p">))</span>
+
+            <span class="n">data</span><span class="p">[</span><span class="n">item_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">item_</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: &#39;</span><span class="si">{}</span><span class="s2">&#39; is not in the data set.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                  <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">item_name</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">data</span>
+
+
+<div class="viewcode-block" id="extract_all"><a class="viewcode-back" href="../../../strahl.html#PyStrahl.core.strahl.extract_all">[docs]</a><span class="k">def</span> <span class="nf">extract_all</span><span class="p">(</span><span class="n">result</span><span class="o">=</span><span class="s2">&quot;Festrahl_result.dat&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts and prints all the item names and shapes from the</span>
+<span class="sd">    variables, dimensions, and _attributes groups within the</span>
+<span class="sd">    given result file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="s2">&quot;result&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">!=</span> <span class="n">path</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">result</span><span class="p">))</span>
+
+    <span class="n">groups_</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">netcdf</span><span class="o">.</span><span class="n">netcdf_file</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">mmap</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                    <span class="n">variables_</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+                    <span class="n">variables_</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;variables&quot;</span>
+                    <span class="n">groups_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">variables_</span><span class="p">)</span>
+
+                    <span class="n">dimensions_</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+                    <span class="n">dimensions_</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;dimensions&quot;</span>
+                    <span class="n">groups_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dimensions_</span><span class="p">)</span>
+
+                    <span class="n">attributes_</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">_attributes</span><span class="p">)</span>
+                    <span class="n">attributes_</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;attributes&quot;</span>
+                    <span class="n">groups_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attributes_</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;File does not exist. Exiting.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">group_</span> <span class="ow">in</span> <span class="n">groups_</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&#39;</span><span class="si">{}</span><span class="s2">&#39; items and shapes:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">group_</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">group_</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="s1">&#39;shape&#39;</span><span class="p">):</span>
+                <span class="n">shape</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">shape</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">shape</span> <span class="o">=</span> <span class="n">item</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">--&gt; </span><span class="si">{}</span><span class="s2">..............</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">shape</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">analyze</span><span class="p">(</span><span class="n">diff</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conv</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">data_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">noises</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lstsq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mcmc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+    <span class="k">if</span> <span class="n">verbose</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;-v&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-v&quot;</span><span class="p">)</span>
+            <span class="n">verbose</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="n">diff</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">diffusion_profile</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Must be entered as comma seperated values with no spaces</span>
+        <span class="k">if</span> <span class="s2">&quot;-diff&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-diff&quot;</span><span class="p">)</span>
+            <span class="n">diffusion_profile</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">diffusion_profile</span> <span class="o">=</span> <span class="n">diff</span>
+
+    <span class="k">if</span> <span class="n">diffusion_profile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">diffusion_profile</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">diffusion_profile</span> <span class="o">=</span> <span class="p">[</span><span class="n">diffusion_profile</span><span class="p">]</span>
+
+        <span class="n">profiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">diffusion_profile</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">conv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">convention_profile</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Must be entered as comma seperated values with no spaces</span>
+        <span class="k">if</span> <span class="s2">&quot;-conv&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-conv&quot;</span><span class="p">)</span>
+            <span class="n">convention_profile</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">convention_profile</span> <span class="o">=</span> <span class="n">conv</span>
+
+    <span class="k">if</span> <span class="n">convention_profile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">convention_profile</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">convention_profile</span> <span class="o">=</span> <span class="p">[</span><span class="n">convention_profile</span><span class="p">]</span>
+
+        <span class="n">profiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">convention_profile</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Interfacing with strahl...&quot;</span><span class="p">)</span>
+
+    <span class="n">interface</span><span class="p">(</span><span class="n">main_fn</span><span class="o">=</span><span class="s2">&quot;example&quot;</span><span class="p">,</span> <span class="n">inpt_fn</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="n">summ_fn</span><span class="o">=</span><span class="s2">&quot;test.json&quot;</span><span class="p">,</span>
+              <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">data_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">data_file</span> <span class="o">=</span> <span class="s2">&quot;Festrahl_result.dat&quot;</span>
+
+        <span class="k">if</span> <span class="s2">&quot;-data_file&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-data_file&quot;</span><span class="p">)</span>
+            <span class="n">data_file</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">variables</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;diag_rad_line&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;-variables&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-variables&quot;</span><span class="p">)</span>
+            <span class="n">variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extracting variables </span><span class="si">{}</span><span class="s2"> from data file </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">data_file</span><span class="p">))</span>
+
+    <span class="c1"># SPLIT INTO INDEP AND DEP VARIABLE SETS</span>
+    <span class="c1"># HELPS WITH NOISE</span>
+    <span class="c1"># PERHAPS HELPS WITH FITTING SINCE WE WILL KNOW HOW MANY INDEP/DEP THERE ARE AUTOMATICALLY</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">get_netCDF_variables</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+    <span class="n">fitting_algorithms</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">lstsq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;-lstsq&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">lstsq</span> <span class="o">=</span> <span class="s2">&quot;Least Square&quot;</span>
+            <span class="n">fitting_algorithms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lstsq</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mcmc</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;-mcmc&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">mcmc</span> <span class="o">=</span> <span class="s2">&quot;Markov Chain Monte Carlo&quot;</span>
+            <span class="n">fitting_algorithms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mcmc</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">gp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;-gp&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">gp</span> <span class="o">=</span> <span class="s2">&quot;Gaussian Process&quot;</span>
+            <span class="n">fitting_algorithms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gp</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">noises</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">noises</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;-noises&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;-noises&quot;</span><span class="p">)</span>
+            <span class="n">noises</span> <span class="o">=</span> <span class="p">[</span><span class="n">noise</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">noise</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Fitting with the following algorithms: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fitting_algorithms</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Using the following noises: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">noises</span><span class="p">))</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">make_noisy</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">noises</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+
+    <span class="n">fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fitting_algorithms</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">PyStrahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Joshua Swerdlow.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

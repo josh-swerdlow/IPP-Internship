@@ -1,0 +1,1219 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Code.PyStrahl.core.parameters &#8212; PyStrahl 1.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">PyStrahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for Code.PyStrahl.core.parameters</h1><div class="highlight"><pre>
+<span></span><span class="c1">########################################</span>
+<span class="c1"># File name: parameters.py             #</span>
+<span class="c1"># Author: Joshua Swerdow               #</span>
+<span class="c1"># Date created: 5/20/2018              #</span>
+<span class="c1"># Date last modified:                  #</span>
+<span class="c1"># Python Version: 3.0+                 #</span>
+<span class="c1">########################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Stores the parameter class which is used to order</span>
+<span class="sd">information about parameters used to execute STRAHL.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Joshua Swerdow&#39;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+
+<div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The Parameter object encapsulates the state of a parameter</span>
+<span class="sd">    and contains the methods to create every single type of parameter</span>
+<span class="sd">    found within all of the parameter files (main, background, etc)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Parameter.__init__"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">,</span> <span class="n">priority</span><span class="p">,</span>
+                <span class="n">valid_vals</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes a Parameter object</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">             name (str): name of the parameter</span>
+<span class="sd">             priority (int): priority of the parameter within its&#39;</span>
+<span class="sd">                parameter file.</span>
+<span class="sd">             val: value assigned to the parameter</span>
+<span class="sd">             valid_vals (list): acceptable values for parameter</span>
+<span class="sd">             dtype (list): acceptable data type classes for parameter</span>
+<span class="sd">             info (str): A string that describes the parameter</span>
+<span class="sd">                if full detail.</span>
+<span class="sd">             verbosity (bool): turns on and off verbose output</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">             name (str): name of the Parameter</span>
+<span class="sd">             priority (int): priority of the Parameter within its&#39;</span>
+<span class="sd">                parameter file.</span>
+<span class="sd">             value: value assigned to the parameter</span>
+<span class="sd">             valid_vals (list): acceptable values for parameter</span>
+<span class="sd">             dtype (list): acceptable data type classes for Parameter</span>
+<span class="sd">             help (str): A string description of the Parameter</span>
+<span class="sd">             verbose (bool): determines if verbose execution is used</span>
+<span class="sd">             state (bool): determines whether we should put the</span>
+<span class="sd">                value of the Parameter into the input file or leave it in</span>
+<span class="sd">                the parameter file.</span>
+
+<span class="sd">        .. :todo:</span>
+<span class="sd">            Create to text outputs: verbose and debug</span>
+<span class="sd">            Deal with priority</span>
+<span class="sd">            Add integration of valid_vals and dtype</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">priority</span> <span class="o">=</span> <span class="n">priority</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="k">if</span> <span class="n">valid_vals</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid_vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;valid_vals is empty. Accepting all values.&quot;</span><span class="p">)</span>
+            <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">valid_vals</span> <span class="o">=</span> <span class="n">valid_vals</span>
+
+        <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dtype is empty. Accepting all date types.&quot;</span><span class="p">)</span>
+            <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">dtype</span>
+
+        <span class="k">if</span> <span class="n">info</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">info</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;There is no help doc for &#39;</span><span class="si">{}</span><span class="s2">&#39;. Try viewing the manual.&quot;</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">help</span> <span class="o">=</span> <span class="n">info</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">verbosity</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbosity</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; Initialized a Parameter object for &#39;</span><span class="si">{}</span><span class="s2">&#39; with attributes:&quot;</span>
+                      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="Parameter.attributes"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.attributes">[docs]</a>    <span class="k">def</span> <span class="nf">attributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prints out all of the attributes of the Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Printing attributes ...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Attributes of </span><span class="si">{}</span><span class="s2"> object </span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.attribute_dictionary"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.attribute_dictionary">[docs]</a>    <span class="k">def</span> <span class="nf">attribute_dictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a dictionary of the attributes of the</span>
+<span class="sd">        Parameter object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">             keys (list): A list of attribute names from the</span>
+<span class="sd">                Parameter object that you would like to have in the</span>
+<span class="sd">                dictionary.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">             A Dictionary of all attriutes requested by the user from</span>
+<span class="sd">             the Parameter object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generating a dictionary of </span><span class="si">{}</span><span class="s2">&#39;s attributes ...&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+
+        <span class="n">attributes</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+            <span class="n">attributes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+
+        <span class="k">return</span> <span class="n">attributes</span></div>
+
+<div class="viewcode-block" id="Parameter.change_value"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.change_value">[docs]</a>    <span class="k">def</span> <span class="nf">change_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Changes the value of the parameter to val or, if not given,</span>
+<span class="sd">        whatever the user enters. The value of the parameter must be</span>
+<span class="sd">        compatible with the parameter objects dtype attribute.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">             val: The new value of the parameter</span>
+<span class="sd">             verbose (bool): Turns on and off verbose output</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">             val: The new value of the parameter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">changeVal</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="ow">or</span> <span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Changing value of &#39;</span><span class="si">{}</span><span class="s2">&#39; to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">val</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">val</span></div>
+
+<div class="viewcode-block" id="Parameter.change_state"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.change_state">[docs]</a>    <span class="k">def</span> <span class="nf">change_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Changes the state of the Parameter object to either the</span>
+<span class="sd">        opposite of what it currently is or to what the user passes.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state (bool): Determine if we need to enter the value</span>
+<span class="sd">                into an input file or not</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Changing state of </span><span class="si">{}</span><span class="s2"> ... &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;state must be a boolean variable&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Changed the state of </span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">&quot;</span>
+                  <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">))</span></div>
+
+<span class="c1"># Main Input Parameters -- at the moment this is limited</span>
+<div class="viewcode-block" id="Parameter.atomic_weight"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.atomic_weight">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">atomic_weight</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the atomic weight parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;atomic weight&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.charge"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.charge">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">charge</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the charge parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;charge&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.shot"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.shot">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">shot</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the shot parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;shot&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.index"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.index">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the index parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;index&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.rho"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.rho">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">rho</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the rho parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;rho&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.number_grid_points"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.number_grid_points">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">number_grid_points</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the number of grid points parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;number of grid points&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.dr_0"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.dr_0">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">dr_0</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the dr_0 parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;dr_0&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.dr_1"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.dr_1">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">dr_1</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the dr_1 parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;dr_1&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.number_of_changes"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.number_of_changes">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">number_of_changes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the number of changes parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;number of changes (start-time+... +stop-time)&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.time"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.time">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">time</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the time parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;time&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.dt_start"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.dt_start">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">dt_start</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the dt at start parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;dt at start&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.dt_increase"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.dt_increase">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">dt_increase</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the increase of dt after cycle parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;increase of dt after cycle&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.steps_per_cycle"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.steps_per_cycle">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">steps_per_cycle</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the steps per cycle parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;steps per cycle&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.number_of_impurities"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.number_of_impurities">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">number_of_impurities</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the number of impurities parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;number of impurities&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.element"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.element">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">element</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the element parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;element&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.impure_atomic_weight"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.impure_atomic_weight">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">impure_atomic_weight</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the impure atomic weight parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;impure atomic weight&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.energy_of_neutrals"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.energy_of_neutrals">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">energy_of_neutrals</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the energy of neutrals parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;energy of neutrals(eV)&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.diffusion_num_intpln_pts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.diffusion_num_intpln_pts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">diffusion_num_intpln_pts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the profile&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;# of D interpolation points&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.diffusion_rho_pol_grid"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.diffusion_rho_pol_grid">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">diffusion_rho_pol_grid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the profile&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;rho polodial grid for D interpolation&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.diffusion"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.diffusion">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">diffusion</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the diffusion profile&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;D[m^2/s]&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.conv_veloc_num_intpln_pts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.conv_veloc_num_intpln_pts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">conv_veloc_num_intpln_pts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the profile&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;# of v interpolation points&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">21</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.conv_veloc_rho_pol_grid"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.conv_veloc_rho_pol_grid">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">conv_veloc_rho_pol_grid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the profile&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;rho polodial grid for v interpolation&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.convective_velocity"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.convective_velocity">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">convective_velocity</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the diffusion profile&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;v[m/s]&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<span class="c1"># Background Input Parameters</span>
+<div class="viewcode-block" id="Parameter.ne_numTimePts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ne_numTimePts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ne_numTimePts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to generate the electon density number of time</span>
+<span class="sd">        points parameter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ne_numTimePts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ne_timePts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ne_timePts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ne_timePts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ne_timePts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ne_paramType"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ne_paramType">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ne_paramType</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ne_paramType&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ne_radCoord"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ne_radCoord">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ne_radCoord</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ne_radCoord&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ne_numInterpPts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ne_numInterpPts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ne_numInterpPts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ne_numInterpPts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ne_radGrid"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ne_radGrid">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ne_radGrid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ne_radGrid&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ne_radGridPts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ne_radGridPts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ne_radGridPts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ne_radGridPts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ne_decayLength"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ne_decayLength">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ne_decayLength</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ne_decayLength&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.te_numTimePts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.te_numTimePts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">te_numTimePts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;te_numTimePts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.te_timePts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.te_timePts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">te_timePts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;te_timePts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.te_paramType"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.te_paramType">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">te_paramType</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;te_paramType&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.te_radCoord"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.te_radCoord">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">te_radCoord</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;te_radCoord&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.te_numInterpPts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.te_numInterpPts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">te_numInterpPts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;te_numInterpPts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.te_radGrid"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.te_radGrid">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">te_radGrid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;te_radGrid&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.te_radGridPts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.te_radGridPts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">te_radGridPts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;te_radGrid&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.te_decayLength"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.te_decayLength">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">te_decayLength</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;te_decayLength&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ti_numTimePts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ti_numTimePts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ti_numTimePts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ti_numTimePts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ti_timePts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ti_timePts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ti_timePts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ti_timePts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ti_paramType"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ti_paramType">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ti_paramType</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ti_paramType&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name9</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ti_radCoord"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ti_radCoord">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ti_radCoord</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ti_radCoord&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name0</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ti_numInterpPts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ti_numInterpPts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ti_numInterpPts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ti_numInterpPts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ti_radGrid"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ti_radGrid">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ti_radGrid</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ti_radGrid&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ti_radGridPts"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ti_radGridPts">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ti_radGridPts</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ti_radGridPts&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Parameter.ti_decayLength"><a class="viewcode-back" href="../../../../parameters.html#Code.PyStrahl.core.parameters.Parameter.ti_decayLength">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">ti_decayLength</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Method to generate the  parameter</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            value: The value to be assigned to Parameter object</span>
+<span class="sd">                upon initialization.</span>
+<span class="sd">            verbosity (bool): Turns on or off verbose execution</span>
+<span class="sd">                for all methods for this object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Parameter object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;ti_decayLength&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">Parameter</span><span class="o">.</span><span class="n">_help</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">valid_vals</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">info</span><span class="o">=</span><span class="n">info</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span></div>
+
+    <span class="c1"># Geometry Input Parameters</span>
+
+    <span class="c1"># Flux Input Parameters</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_help</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Finds the help file name.h.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            name (str): Name of the help file with or without &#39;.h&#39;</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A string that describes the parameter, valid data type(s),</span>
+<span class="sd">            and valid values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.h&quot;</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;.h&quot;</span>
+
+        <span class="n">file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;./source/interface&quot;</span><span class="p">,</span> <span class="s2">&quot;help&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="n">help_str</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">file</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">help_str</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">help_str</span></div>
+
+
+<span class="k">class</span> <span class="nc">Parameters</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class to organize multiple parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter_dict</span><span class="p">[</span><span class="n">parameter</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">parameter</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbosity</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt;&gt;&gt;Initialized a Parameters object called </span><span class="si">{}</span><span class="s2"> with attributes:</span><span class="se">\n</span><span class="si">{}</span><span class="s2">&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter_dict</span><span class="p">))</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">impurities</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;impurities&quot;</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">main_time_steps</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;main_time_steps&quot;</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+
+
+
+
+
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../../index.html">PyStrahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Joshua Swerdlow.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

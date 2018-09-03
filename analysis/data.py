@@ -33,9 +33,13 @@ FLOAT_EPSILON = sys.float_info.epsilon
 FLOAT_ABS_MIN = FLOAT_MIN_VAL * FLOAT_EPSILON
 
 
+# Before I finish commenting, let's:
+#   Work out the random noise problem
+#   Bring the magic methods up to my standards
+#
 class Function:
     """Create a Function object that stores features of the
-    given function.
+    given single variable function.
 
     """
     rndst = np.random.RandomState(0)
@@ -622,6 +626,9 @@ class Function:
         return (np.random.normal(0, sig, len(intensity)) +
                 np.random.normal(0, np.sqrt(A * intensity), len(intensity)))
 
+
+# Before I start commenting, let's:
+#   Figure out if there is a good and general way to create Residual object regardless or D and v splines!
 
 class Residual:
 

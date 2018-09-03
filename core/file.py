@@ -8,9 +8,9 @@
 
 """
 Summary: Stores the parameter, input, and summary file classes
-    which are used to order information and methods that
-    create, interact, or load the parameter, input, or summary
-    files.
+which are used to order information and methods that
+create, interact, or load the parameter, input, or summary
+files.
 """
 
 __author__ = 'Joshua Swerdow'
@@ -56,7 +56,7 @@ class ParameterFile():
             groups (list): Nested lists of parameter object names which are
                 found together on a single line.
             verbosity (bool): Turns on and off verbose ouput
-
+        wprfjwerpfwijpi
         Attributes:
             type (str): 'main', 'background', 'geometry', 'flux', 'atomic_data'
             fn (str): The files name

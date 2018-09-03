@@ -1,0 +1,1086 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>PyStrahl.core.editor &#8212; PyStrahl 1.0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">PyStrahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for PyStrahl.core.editor</h1><div class="highlight"><pre>
+<span></span><span class="c1">########################################</span>
+<span class="c1"># File name: editor.py                 #</span>
+<span class="c1"># Author: Joshua Swerdow               #</span>
+<span class="c1"># Date created: 5/20/2018              #</span>
+<span class="c1"># Date last modified: 8/20/2018        #</span>
+<span class="c1"># Python Version: 3.0+                 #</span>
+<span class="c1">########################################</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Stores the file, parameter file, input file, and</span>
+<span class="sd">summary file editor classes. These generally order</span>
+<span class="sd">information and functions that create, interact, or</span>
+<span class="sd">load the parameter, input, or summary objects.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s1">&#39;Joshua Swerdow&#39;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">subprocess</span> <span class="k">as</span> <span class="nn">sub</span>
+
+<span class="kn">from</span> <span class="nn">PyStrahl.utils</span> <span class="k">import</span> <span class="n">query</span>
+<span class="kn">from</span> <span class="nn">PyStrahl.core.file</span> <span class="k">import</span> <span class="n">ParameterFile</span><span class="p">,</span> <span class="n">InputFile</span><span class="p">,</span> <span class="n">SummaryFile</span>
+
+
+<div class="viewcode-block" id="FileEditor"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor">[docs]</a><span class="k">class</span> <span class="nc">FileEditor</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This object wraps around the standard Python file object</span>
+<span class="sd">    to add further functionality specific for reading and writing</span>
+<span class="sd">    to STRAHL parameter files.</span>
+
+<span class="sd">    .. :to do:</span>
+<span class="sd">        Figure out back up files?</span>
+<span class="sd">        No verbose output at the moment</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FileEditor.__init__"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the FileEditor object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            file (str): The name of the file to be opened.</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            fn (str) The name of the file opened.</span>
+<span class="sd">            _deletions (int): The current number of deletions performed</span>
+<span class="sd">                for use in backup file.</span>
+<span class="sd">            _line (int): The current line number.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fn</span> <span class="o">=</span> <span class="n">fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deletions</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_line</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+        <span class="c1"># if not os.path.isdir(&quot;./_backup&quot;):</span>
+        <span class="c1">#     mkdirBckupCmd = &quot;mkdir ./_backup&quot;</span>
+        <span class="c1">#     sub.call(mkdirBckupCmd.split())</span>
+
+<div class="viewcode-block" id="FileEditor.open_file"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.open_file">[docs]</a>    <span class="k">def</span> <span class="nf">open_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">read_write_attribute</span><span class="o">=</span><span class="s2">&quot;r+&quot;</span><span class="p">,</span> <span class="n">buffer_time</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Opens the given file and creates a file standard Python</span>
+<span class="sd">        file object.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            read_write_attribute (str): Sets the read and write</span>
+<span class="sd">                abilities of the file object.</span>
+<span class="sd">            buffer_time (int): Sets the buffer time.</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            file (:obj:`file`): A file object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">,</span> <span class="n">read_write_attribute</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="FileEditor.read_char"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.read_char">[docs]</a>    <span class="k">def</span> <span class="nf">read_char</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns n characters read from the buffer and keeps track</span>
+<span class="sd">        of the current line.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **n** [int|1]: number of characters to be read</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            OSError: If the file object is not readable</span>
+
+<span class="sd">        Note: This should be used to capture select words from a</span>
+<span class="sd">            setence, rather than read line or lines. For that use</span>
+<span class="sd">            FileEditor.readline().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">readable</span><span class="p">():</span>
+            <span class="n">chars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">chars</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">char</span> <span class="ow">is</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_line</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">return</span> <span class="n">chars</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File was not opened to be readable.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">OSError</span></div>
+
+<div class="viewcode-block" id="FileEditor.read_lines"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.read_lines">[docs]</a>    <span class="k">def</span> <span class="nf">read_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the line read from the buffer and keeps track of</span>
+<span class="sd">        the current line.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **n** [int|1]: The number of lines to read</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            OSError: If the file object is not readable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">readable</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_line</span> <span class="o">+=</span> <span class="n">n</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="nb">str</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+                <span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+
+            <span class="k">return</span> <span class="n">lines</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File was not opened to be readable.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">OSError</span></div>
+
+<div class="viewcode-block" id="FileEditor.cur_loc"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.cur_loc">[docs]</a>    <span class="k">def</span> <span class="nf">cur_loc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the current location in the form of the current</span>
+<span class="sd">        character and the current line.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            OSError: If the file object is not seekable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">seekable</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">tell</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File cannot be randomly accessed.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">OSError</span></div>
+
+<div class="viewcode-block" id="FileEditor.move"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.move">[docs]</a>    <span class="k">def</span> <span class="nf">move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resets the buffer to the specified location relative to the</span>
+<span class="sd">        begining of the buffer and resets the line attribute to the</span>
+<span class="sd">        line at the reset location.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **loc** [tuple of int|(0,0)]: the location to move to</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            OSError: If the file object is not seekable</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">charNumb</span> <span class="o">=</span> <span class="n">loc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">lineNumb</span> <span class="o">=</span> <span class="n">loc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">seekable</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">charNumb</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_line</span> <span class="o">=</span> <span class="n">lineNumb</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File cannot be randomly accessed.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">OSError</span></div>
+
+<div class="viewcode-block" id="FileEditor.peak"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.peak">[docs]</a>    <span class="k">def</span> <span class="nf">peak</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads n characters read from the buffer, but returns</span>
+<span class="sd">        to the initial location.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **n** [int|1]: the number of characters to read</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            chars: The characters read from the file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_loc</span><span class="p">()</span>
+        <span class="n">chars</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_char</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">loc</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">chars</span></div>
+
+<div class="viewcode-block" id="FileEditor.peak_lines"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.peak_lines">[docs]</a>    <span class="k">def</span> <span class="nf">peak_lines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reads until a newline is found or EOF, but returns to the</span>
+<span class="sd">        initial location.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **n** [int|1]: the number of lines to read</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            line: The lines read from the file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_loc</span><span class="p">()</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_lines</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">loc</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">line</span></div>
+
+<div class="viewcode-block" id="FileEditor.update"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Updates the buffer immediately&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="FileEditor.add"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">addition</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds the given addition to the file at the current location.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **addition** [str]: The addition to be added to the file.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            OSError: If the file is not writable.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">writable</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">addition</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">addition</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.1f</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_line</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">addition</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">_line</span> <span class="o">+=</span> <span class="n">addition</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;File is not writable.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">OSError</span></div>
+
+<div class="viewcode-block" id="FileEditor.delete"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deletion</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">replacement</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">line</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes the given deletion phrase or by default a single line.</span>
+<span class="sd">        The previous file is always saved into a folder called ./_backup.</span>
+
+<span class="sd">        Paramaters:</span>
+<span class="sd">            * **deletion** [str|&quot;&quot;]: The string to be deleted.</span>
+<span class="sd">            * **replacement** [str|&quot;&quot;]: The string to be replaced</span>
+<span class="sd">            * **line** [int|0]: The number of lines to be deleted</span>
+<span class="sd">            * **repeat** [int|1]: The numbe of repeations</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">empty</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_deletions</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">deletion</span> <span class="ow">is</span> <span class="n">empty</span><span class="p">:</span>
+            <span class="n">delLineCmd</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;sed -l -i.bck_up</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">d </span><span class="si">{}</span><span class="s2">&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_deletions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">))</span>
+
+            <span class="n">sub</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">delLineCmd</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+            <span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_loc</span><span class="p">()</span>
+
+        <span class="k">elif</span> <span class="n">deletion</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">empty</span><span class="p">:</span>  <span class="c1"># delete the deletion</span>
+            <span class="k">if</span> <span class="n">line</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_line</span> <span class="o">+</span> <span class="mi">1</span>
+
+            <span class="n">delPhraseCmd</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;sed -l -i.bck_up</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">s/</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span>
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_deletions</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">deletion</span><span class="p">,</span>
+                        <span class="n">replacement</span><span class="p">,</span> <span class="n">repeat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">))</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="n">delPhraseCmd</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="n">sub</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">delPhraseCmd</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+            <span class="n">loc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cur_loc</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Broke af&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">open_file</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">loc</span><span class="p">)</span></div>
+
+        <span class="c1"># if backup:</span>
+        <span class="c1">#     mvBckupCmd = (&quot;mv {}.bck_up{} ./_backup&quot;</span>
+        <span class="c1">#         .format(self.fn, self._deletions))</span>
+        <span class="c1">#     sub.call(mvBckupCmd.split())</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     delBckupCmdn = ((&quot;rm {}.bck_up{}&quot;)</span>
+        <span class="c1">#         .format(self.fn, self._deletions))</span>
+        <span class="c1">#     sub.call(delBckupCmdn.split())</span>
+
+<div class="viewcode-block" id="FileEditor.close_file"><a class="viewcode-back" href="../../../file_editor.html#PyStrahl.core.editor.FileEditor.close_file">[docs]</a>    <span class="k">def</span> <span class="nf">close_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clean</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Closes the file and by default deletes the</span>
+<span class="sd">        backups for this file in the folder ./_backup</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">clean</span><span class="p">:</span>
+            <span class="n">cleanBckupDir</span> <span class="o">=</span> <span class="s2">&quot;rm ./_backup/</span><span class="si">{}</span><span class="s2">.bck_up*&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">)</span>
+            <span class="n">sub</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">cleanBckupDir</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="ParameterFileEditor"><a class="viewcode-back" href="../../../parameter_file_editor.html#PyStrahl.core.editor.ParameterFileEditor">[docs]</a><span class="k">class</span> <span class="nc">ParameterFileEditor</span><span class="p">(</span><span class="n">FileEditor</span><span class="p">,</span> <span class="n">ParameterFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Summary: A class that handles general editing of parameter files.</span>
+<span class="sd">    It is built on top of the FileEditor() class.</span>
+
+<span class="sd">    To Do:</span>
+<span class="sd">        Needs to deal with writing and deleting comments</span>
+<span class="sd">        What exactly is next doing? haha</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ParameterFileEditor.__init__"><a class="viewcode-back" href="../../../parameter_file_editor.html#PyStrahl.core.editor.ParameterFileEditor.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">parameter_file</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes a ParameterFileEditor object</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **parameter_file** [str]: The parameter file name.</span>
+<span class="sd">            * **verbosity** [bool|False]: turns on and off verbose</span>
+<span class="sd">                ouput.</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            * **verbose** [bool|False]: determines if verbose</span>
+<span class="sd">                execution is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">parameter_file</span> <span class="o">=</span> <span class="n">parameter_file</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">open_file</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbosity</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt;&gt;&gt;Initialized a parameter file editor for </span><span class="si">{}</span><span class="s2">&quot;</span>
+                 <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">file_path</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ParameterFileEditor.create_editors"><a class="viewcode-back" href="../../../parameter_file_editor.html#PyStrahl.core.editor.ParameterFileEditor.create_editors">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create_editors</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">file_names</span><span class="p">,</span>
+                       <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Loads multiple ParameterFileEditor objects depending on the file_names.</span>
+<span class="sd">        Only accepts one file_name of each file_type and only accepts</span>
+<span class="sd">        file_type in the following order: main, background, geometry, flux.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **file_names** [list]: list of parameter file names</span>
+<span class="sd">                expects one of each (main, background, geometry, and flux)</span>
+<span class="sd">            * **verbosity** [bool|False]: turns on and off verbose ouput</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A list of ParameterFileEditor objects for the file names</span>
+<span class="sd">            given in order of main, bckg, geom, flux. Returns an</span>
+<span class="sd">            empty list if no file names are given.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">file_names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">&quot;No file names given to create paramater editors.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file_names</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">file_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">file_names</span><span class="p">)</span>
+
+        <span class="n">main_dir</span> <span class="o">=</span> <span class="s2">&quot;param_files&quot;</span>
+        <span class="n">bckg_dir</span> <span class="o">=</span> <span class="s2">&quot;nete&quot;</span>
+        <span class="n">geom_dir</span> <span class="o">=</span> <span class="n">bckg_dir</span>
+        <span class="n">flux_dir</span> <span class="o">=</span> <span class="n">bckg_dir</span>
+
+        <span class="n">directories</span> <span class="o">=</span> <span class="p">[</span><span class="n">main_dir</span><span class="p">,</span> <span class="n">bckg_dir</span><span class="p">,</span> <span class="n">geom_dir</span><span class="p">,</span> <span class="n">flux_dir</span><span class="p">]</span>
+
+        <span class="n">main</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">bckg</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">geom</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">flux</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">parameter_editors</span> <span class="o">=</span> <span class="p">[</span><span class="n">main</span><span class="p">,</span> <span class="n">bckg</span><span class="p">,</span> <span class="n">geom</span><span class="p">,</span> <span class="n">flux</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_names</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="n">file_names</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">file_names</span><span class="p">[</span><span class="n">index</span><span class="p">])</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                    <span class="n">file_names</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file_names</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+
+                <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directories</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">file_names</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+                    <span class="n">editor</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">main_editor</span><span class="p">(</span><span class="n">file_names</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+                                           <span class="n">path</span><span class="p">,</span>
+                                           <span class="n">verbosity</span><span class="p">)</span>
+
+                    <span class="n">parameter_editors</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">editor</span>
+
+        <span class="k">return</span> <span class="n">parameter_editors</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">main_editor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="n">parameter_file</span> <span class="o">=</span> <span class="n">ParameterFile</span><span class="o">.</span><span class="n">create_parameter_file</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span>
+                                                             <span class="n">file_path</span><span class="p">,</span>
+                                                             <span class="s2">&quot;main&quot;</span><span class="p">,</span>
+                                                             <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">parameter_file</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">bckg_editor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="n">parameter_file</span> <span class="o">=</span> <span class="n">ParameterFile</span><span class="o">.</span><span class="n">create_parameter_file</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span>
+                                                             <span class="n">file_path</span><span class="p">,</span>
+                                                             <span class="s2">&quot;background&quot;</span><span class="p">,</span>
+                                                             <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">parameter_file</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">geom_editor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="n">parameter_file</span> <span class="o">=</span> <span class="n">ParameterFile</span><span class="o">.</span><span class="n">create_parameter_file</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span>
+                                                             <span class="n">file_path</span><span class="p">,</span>
+                                                             <span class="s2">&quot;geometry&quot;</span><span class="p">,</span>
+                                                             <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">parameter_file</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">flux_editor</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">):</span>
+        <span class="n">parameter_file</span> <span class="o">=</span> <span class="n">ParameterFile</span><span class="o">.</span><span class="n">create_parameter_file</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span>
+                                                             <span class="n">file_path</span><span class="p">,</span>
+                                                             <span class="s2">&quot;flux&quot;</span><span class="p">,</span>
+                                                             <span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">parameter_file</span><span class="p">,</span> <span class="n">verbosity</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ParameterFileEditor.search_parameter_file"><a class="viewcode-back" href="../../../parameter_file_editor.html#PyStrahl.core.editor.ParameterFileEditor.search_parameter_file">[docs]</a>    <span class="k">def</span> <span class="nf">search_parameter_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_key</span><span class="o">=</span><span class="s2">&quot;comments&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Searches the entire parameter file to turn on and off the</span>
+<span class="sd">        parameters which have been elected to be changed with comments (&#39;#&#39;).</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **paramFile** [ParameterFile obj]: a ParameterFile object</span>
+<span class="sd">                to search through</span>
+<span class="sd">            * **search_key** [str|&quot;comments&quot;]: chooses to search</span>
+<span class="sd">                for comments or non-comments</span>
+<span class="sd">            * **verbose** [bool|False]: turn on commented output</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Search entire file for comments and non comments</span>
+        <span class="c1"># then change the relevant parameters</span>
+        <span class="n">keywords</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">keywords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">search_key</span> <span class="o">==</span> <span class="s2">&quot;noncomments&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Searching parameter file </span><span class="si">{}</span><span class="s2"> for non-comments&quot;</span>
+                        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_file</span><span class="o">.</span><span class="n">fn</span><span class="p">))</span>
+
+                <span class="n">keywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_search_parameter_file_non_comments</span><span class="p">()</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Searching parameter file </span><span class="si">{}</span><span class="s2"> for comments&quot;</span>
+                        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_file</span><span class="o">.</span><span class="n">fn</span><span class="p">))</span>
+
+                <span class="n">keywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_search_parameter_file_comments</span><span class="p">()</span>
+
+            <span class="c1"># Change the relevant parameters if there are any</span>
+            <span class="k">if</span> <span class="n">keywords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_change_relevant_parameters</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_file</span><span class="p">,</span> <span class="n">keywords</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_next</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regex</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Moves to the first next regex in the given file and</span>
+<span class="sd">        returns a boolean value if found.</span>
+
+<span class="sd">        Paramaters:</span>
+<span class="sd">            * **regex** [str]: A regular expression phrase to search for.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            True: If the regex is found otherwise false</span>
+<span class="sd">            None: If we are at the end of the file already</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">peak_lines</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">peak_lines</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">break</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">read_lines</span><span class="p">()</span>
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">_extract_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">,</span> <span class="n">regex</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a parameter header input, this extracts the parameters</span>
+<span class="sd">        according to the regex given.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **line** [str]: the parameter header input line of text</span>
+<span class="sd">            * **regex** [str]: a regular expression search string</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A set of parameters from the input line or -1 if the</span>
+<span class="sd">            parameter header was not handled correctly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">split_temp</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+
+        <span class="n">temp</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_temp</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">split_temp</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># Remove the newline character</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Splitting the parameter header ...&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The parameter header was not split correclty.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">split_temp</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+
+        <span class="n">paramsSet</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">s{2,}&quot;</span><span class="p">,</span> <span class="n">temp</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Returning a set of parameters from the header input line: &quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">paramsSet</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">paramsSet</span>
+
+    <span class="k">def</span> <span class="nf">_next_noncomment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Moves to the next &#39;cv &#39; in the given file.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A call to self.next with a regex phrase for noncomments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Moving to next noncomment ...&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next</span><span class="p">(</span><span class="s2">&quot;(cv</span><span class="se">\\</span><span class="s2">s)</span><span class="si">{1}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_next_comment</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Moves to the next &#39;cv#&#39; in the given file.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A call to self.next with a regex phrase for comments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Moving to next comment ...&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next</span><span class="p">(</span><span class="s2">&quot;(cv#)&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_extract_non_commented_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a parameter header input, this extracts the</span>
+<span class="sd">        uncommented parameters</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A call to self.extractParameters with a regex phrase</span>
+<span class="sd">            for noncomments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extracting uncommented parameters ...&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_parameters</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="s2">&quot;cv</span><span class="se">\\</span><span class="s2">s*&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_extract_commented_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given a parameter header input, this extracts the</span>
+<span class="sd">        commented parameters</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A call to self.extractParameters with a regex phrase</span>
+<span class="sd">            for noncomments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extracting commented parameters ...&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_parameters</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="s2">&quot;cv#</span><span class="se">\\</span><span class="s2">s*&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_search_parameter_file_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given an ParameterFileEditor object go to the next comment</span>
+<span class="sd">        line, extract the commented parameters from that line, and</span>
+<span class="sd">        return them in a set of keywords.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * **keywords** [set]: A set of keywords found in the</span>
+<span class="sd">                parameter file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">keywords</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="n">next_comment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next_comment</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">next_comment</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">keywords</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">elif</span> <span class="n">next_comment</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_lines</span><span class="p">()</span>
+
+            <span class="n">keywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_commented_parameters</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">keywords</span>
+
+    <span class="k">def</span> <span class="nf">_search_parameter_file_non_comments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Given an ParameterFileEditor object go to the next non-comment</span>
+<span class="sd">        line, extract the non-commented parameters from that line, and</span>
+<span class="sd">        return them in a set of keywords.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            * **keywords** [set]: A set of keywords found in the</span>
+<span class="sd">                parameter file</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">keywords</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="n">next_comment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_noncomment</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">next_comment</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">keywords</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">elif</span> <span class="n">next_comment</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_lines</span><span class="p">()</span>
+
+            <span class="n">keywords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">extract_non_commented_parameters</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">keywords</span>
+
+    <span class="k">def</span> <span class="nf">_change_relevant_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameter_file</span><span class="p">,</span> <span class="n">keywords</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Each paramFile obj is created for the different parameterFiles</span>
+<span class="sd">        (i.e. main, background, geometry, and flux). Each paramFile obj</span>
+<span class="sd">        contains many attributes. One is a dict of parameter objects.</span>
+<span class="sd">        This parameter objects contain the name, value, state, and other</span>
+<span class="sd">        importan attributes of the parameter. The value and state can</span>
+<span class="sd">        be changed through the paramter object. The name is initiated</span>
+<span class="sd">        on creation of the object.</span>
+
+<span class="sd">        Searching the parameter file currently yields a list of</span>
+<span class="sd">        parameter keywords taken from the header line. However,</span>
+<span class="sd">        one look inside the parameter files can show that not all of</span>
+<span class="sd">        these keywords are actually parameters which require input.</span>
+<span class="sd">        So this function cross-references the paramFile params dict</span>
+<span class="sd">        and the params list from searching. It also changes their</span>
+<span class="sd">        state while we have the relevant parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">parameter_file</span><span class="o">.</span><span class="n">parameter_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">relev_parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="o">&amp;</span> <span class="n">keywords</span>
+
+        <span class="c1"># Change parameters to correct state</span>
+        <span class="p">[</span><span class="n">parameter_file</span><span class="o">.</span><span class="n">parameter_dict</span><span class="p">[</span><span class="n">param_name</span><span class="p">]</span><span class="o">.</span><span class="n">change_state</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">param_name</span> <span class="ow">in</span> <span class="n">relev_parameters</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="SummaryFileEditor"><a class="viewcode-back" href="../../../summary_file_editor.html#PyStrahl.core.editor.SummaryFileEditor">[docs]</a><span class="k">class</span> <span class="nc">SummaryFileEditor</span><span class="p">(</span><span class="n">SummaryFile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Summary: A class that handles &#39;get&#39;-ing and &#39;write&#39;-ing</span>
+<span class="sd">    of summary files. It is built on top of the SummaryFile() class.</span>
+
+<span class="sd">    To Do:</span>
+<span class="sd">        Add HDF5</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SummaryFileEditor.__init__"><a class="viewcode-back" href="../../../summary_file_editor.html#PyStrahl.core.editor.SummaryFileEditor.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sum_fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes a summary file editor object.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **sum_fn** [str]: The summary files name</span>
+<span class="sd">            * **verbosity** [bool|False]: turns on and off verbose ouput</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            * **loadable** [bool|False]: determines if something</span>
+<span class="sd">                has been written to this summary file.</span>
+<span class="sd">            * **verbose** [bool|False]: determines if verbose</span>
+<span class="sd">                execution is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">sum_fn</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loadable</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbosity</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt;&gt;&gt;Initialized a summary file editor object for </span><span class="si">{}</span><span class="s2">&quot;</span>
+                 <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sum_fn</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="SummaryFileEditor.get"><a class="viewcode-back" href="../../../summary_file_editor.html#PyStrahl.core.editor.SummaryFileEditor.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the summary file using the serialization on the file</span>
+<span class="sd">        extension.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The Python converted JSON dictionary that was</span>
+<span class="sd">            read in from the summary file. If the object cannot</span>
+<span class="sd">            be converted then None is returned.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">path_to_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">serial</span> <span class="o">==</span> <span class="s2">&quot;json&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Getting with json serialization ...&quot;</span><span class="p">)</span>
+
+            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getJSON</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">serial</span> <span class="o">==</span> <span class="s2">&quot;hdf5&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Getting with hdf5 serialization ...&quot;</span><span class="p">)</span>
+
+            <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getHDF5</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Incorrect serial value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Got </span><span class="si">{}</span><span class="s2"> from </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">path_to_file</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+<div class="viewcode-block" id="SummaryFileEditor.write"><a class="viewcode-back" href="../../../summary_file_editor.html#PyStrahl.core.editor.SummaryFileEditor.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes the input file into a summary file using the</span>
+<span class="sd">        serialization on the file extension.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **dic** [dic]: A dictionary summary of the object</span>
+<span class="sd">                which is created using custom method for the</span>
+<span class="sd">                file and parameter objects.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">path_to_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">serial</span> <span class="o">==</span> <span class="s2">&quot;json&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Writing with json serialization ...&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_writeJSON</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="n">path_to_file</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">serial</span> <span class="o">==</span> <span class="s2">&quot;hdf5&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Writing with hdf5 serialization ...&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_writeHDF5</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="n">path_to_file</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Incorrect serial value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">serial</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt;&gt;&gt;Created the following summmary file in </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">))</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path_to_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">loadable</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_getJSON</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets the obj dictionary from the json file given.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **fn** [str]: a json files name</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A Python dictionary saved in the JSON file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_writeJSON</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write the given dictionary to the json file given.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **dic** [dic]: A python dictionary describing some class.</span>
+<span class="sd">            * **fn** [str]: The file name to write into.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dic</span> <span class="o">=</span> <span class="n">SummaryFileEditor</span><span class="o">.</span><span class="n">_preprocess_json</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">dic</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_getHDF5</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_writeHDF5</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_preprocess_json</span><span class="p">(</span><span class="n">dic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Before writing to JSON, check the dict for datatypes that are not</span>
+<span class="sd">        serializable.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            dic (dict): A dictionary instance to be preprocessed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">dic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">SummaryFileEditor</span><span class="o">.</span><span class="n">_preprocess_json</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="n">dic</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">dic</span></div>
+
+
+<div class="viewcode-block" id="InputFileEditor"><a class="viewcode-back" href="../../../input_file_editor.html#PyStrahl.core.editor.InputFileEditor">[docs]</a><span class="k">class</span> <span class="nc">InputFileEditor</span><span class="p">(</span><span class="n">InputFile</span><span class="p">):</span>
+
+<div class="viewcode-block" id="InputFileEditor.__init__"><a class="viewcode-back" href="../../../input_file_editor.html#PyStrahl.core.editor.InputFileEditor.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inpt_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">overwrite_flag</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbosity</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes an InputFileEditor object</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **inpt_fn** [str|None]: The input file name.</span>
+<span class="sd">            * **inputs** [list|None]: the list of values of the parameters</span>
+<span class="sd">            * **overwrite_flag** [bool|False]: flag that determined if the</span>
+<span class="sd">                given input file will be automatically overwritten or</span>
+<span class="sd">                if the user will be prompted first.</span>
+<span class="sd">            * **verbosity** [bool|False]: turns on and off verbose</span>
+<span class="sd">                ouput.</span>
+
+<span class="sd">        Attributes:</span>
+<span class="sd">            * **verbose** [bool|False]: determines if verbose</span>
+<span class="sd">                execution is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+                         <span class="n">overwrite_flag</span><span class="o">=</span><span class="n">overwrite_flag</span><span class="p">,</span>
+                         <span class="n">verbosity</span><span class="o">=</span><span class="n">verbosity</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbosity</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt;&gt;&gt;Initialized an input file editor object.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="InputFileEditor.add"><a class="viewcode-back" href="../../../input_file_editor.html#PyStrahl.core.editor.InputFileEditor.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a value (if given) to the input file. If it is not given,</span>
+<span class="sd">        then the user is asked to input a value which is used.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **element** [???|None]: The element that should be</span>
+<span class="sd">                added to the input file.</span>
+<span class="sd">            * **index** [int|None]: The location in the input file</span>
+<span class="sd">                that the element should be placed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Appending </span><span class="si">{}</span><span class="s2"> to the end of the input file values.&quot;</span>
+                     <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">index</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Index (</span><span class="si">{}</span><span class="s2">) out of range, appending </span><span class="si">{}</span><span class="s2"> to the end.&quot;</span>
+                  <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">element</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Add </span><span class="si">{}</span><span class="s2"> into index (</span><span class="si">{}</span><span class="s2">)&quot;</span>
+                     <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">element</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="InputFileEditor.delete"><a class="viewcode-back" href="../../../input_file_editor.html#PyStrahl.core.editor.InputFileEditor.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Deletes the element given and if the element is</span>
+<span class="sd">        not given, then remove the last value.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            * **element** [???|None]: The element to be removed</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The output of either removing the given element or</span>
+<span class="sd">            simply popping from the inputs list.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> is not in inputs&quot;</span>
+                     <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">element</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Removing the last value in inputs&quot;</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="InputFileEditor.write"><a class="viewcode-back" href="../../../input_file_editor.html#PyStrahl.core.editor.InputFileEditor.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">main_fn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Writes the inputs list to a text file given by the file name.</span>
+<span class="sd">        During this process we check every possible instance of date</span>
+<span class="sd">        type in the inputs list and convert them to strings which can</span>
+<span class="sd">        be read by STRAHL natively.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Writing the input file ...&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fn</span><span class="p">,</span> <span class="s2">&quot;r+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">main_fn</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;/</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">inpt</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputs</span><span class="p">:</span>
+                <span class="n">inpt_bckup</span> <span class="o">=</span> <span class="n">inpt</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inpt</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="n">inpt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> was an instance of int&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_bckup</span><span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Changing </span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_bckup</span><span class="p">,</span> <span class="n">inpt</span><span class="p">))</span>
+
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inpt</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                    <span class="n">inpt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{:.8E}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> was an instance of float&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_bckup</span><span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Changing </span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_bckup</span><span class="p">,</span> <span class="n">inpt</span><span class="p">))</span>
+
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inpt</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                    <span class="n">empty</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+                    <span class="k">for</span> <span class="n">inp</span> <span class="ow">in</span> <span class="n">inpt</span><span class="p">:</span>
+                        <span class="n">empty</span> <span class="o">=</span> <span class="n">empty</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{:.8E}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+
+                    <span class="n">inpt</span> <span class="o">=</span> <span class="n">empty</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> was an instance of list or tuple&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_bckup</span><span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Changing </span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_bckup</span><span class="p">,</span> <span class="n">inpt</span><span class="p">))</span>
+
+                <span class="c1"># Currently only handles 2D arrays</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inpt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                    <span class="n">empty</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+                    <span class="k">if</span> <span class="n">inpt</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: </span><span class="si">{}</span><span class="s2"> has more than 2 dimensions&quot;</span>
+                            <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt</span><span class="p">))</span>
+
+                    <span class="c1"># Pad inpt until it has two dimensions so one can</span>
+                    <span class="c1"># treat it like a 2D array regardless of the values</span>
+
+                    <span class="n">shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">inpt</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                    <span class="k">while</span> <span class="n">inpt</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="n">inpt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">inpt</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+                    <span class="n">cols</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">rows</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+                    <span class="n">empty</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+                        <span class="n">row_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">()</span>
+                        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
+                            <span class="n">row_str</span> <span class="o">=</span> <span class="n">row_str</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{:.8E}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">])</span>
+
+                        <span class="n">row_str</span> <span class="o">=</span> <span class="n">row_str</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+                        <span class="n">empty</span> <span class="o">=</span> <span class="n">empty</span> <span class="o">+</span> <span class="n">row_str</span>
+
+                    <span class="n">inpt</span> <span class="o">=</span> <span class="n">empty</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> was an instance of np.ndarray&quot;</span>
+                              <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_bckup</span><span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Changing </span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_bckup</span><span class="p">,</span> <span class="n">inpt</span><span class="p">))</span>
+
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inpt</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="n">inpt</span> <span class="o">=</span> <span class="n">inpt</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;&#39;&#39;&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> was an instance of a string&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_bckup</span><span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Changing </span><span class="si">{}</span><span class="s2"> to </span><span class="si">{}</span><span class="s2">&quot;</span>
+                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">inpt_bckup</span><span class="p">,</span> <span class="n">inpt</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">inpt</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding a newline character&quot;</span><span class="p">)</span>
+
+                    <span class="n">inpt</span> <span class="o">=</span> <span class="n">inpt</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+                <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">inpt</span><span class="p">)</span>
+
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;E</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt;&gt;&gt;Created the following input file&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span></div></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">PyStrahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Joshua Swerdlow.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

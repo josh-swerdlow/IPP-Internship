@@ -1,0 +1,233 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" lang="Python">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>InputFileEditor Object &#8212; PyStrahl 1.0.1 documentation</title>
+    <link rel="stylesheet" href="_static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SummaryFileEditor Object" href="summary_file_editor.html" />
+    <link rel="prev" title="ParameterFileEditor Object" href="parameter_file_editor.html" /> 
+  </head>
+  <body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="summary_file_editor.html" title="SummaryFileEditor Object"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="parameter_file_editor.html" title="ParameterFileEditor Object"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyStrahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="strahl.html" >STRAHL Wrapper</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="editor.html" accesskey="U">Editor Objects</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="inputfileeditor-object">
+<h1>InputFileEditor Object<a class="headerlink" href="#inputfileeditor-object" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="summary">
+<h2><strong>Summary</strong><a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="current-status">
+<h2><strong>Current Status</strong><a class="headerlink" href="#current-status" title="Permalink to this headline">¶</a></h2>
+<p>The InputFileEditor object is fully operational.</p>
+</div>
+<div class="section" id="future-work">
+<h2><strong>Future Work</strong><a class="headerlink" href="#future-work" title="Permalink to this headline">¶</a></h2>
+<p>There is no future work planned at this moment.</p>
+</div>
+<div class="section" id="known-bugs">
+<h2><strong>Known Bugs</strong><a class="headerlink" href="#known-bugs" title="Permalink to this headline">¶</a></h2>
+<p>There are no known bugs.</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="module-PyStrahl.core.editor">
+<span id="source-code"></span><h2><strong>Source Code</strong><a class="headerlink" href="#module-PyStrahl.core.editor" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="PyStrahl.core.editor.InputFileEditor">
+<em class="property">class </em><code class="descclassname">PyStrahl.core.editor.</code><code class="descname">InputFileEditor</code><span class="sig-paren">(</span><em>inpt_fn=None</em>, <em>inputs=None</em>, <em>overwrite_flag=False</em>, <em>verbosity=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyStrahl/core/editor.html#InputFileEditor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyStrahl.core.editor.InputFileEditor" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="PyStrahl.core.editor.InputFileEditor.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>inpt_fn=None</em>, <em>inputs=None</em>, <em>overwrite_flag=False</em>, <em>verbosity=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyStrahl/core/editor.html#InputFileEditor.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyStrahl.core.editor.InputFileEditor.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes an InputFileEditor object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>inpt_fn</strong><strong> [</strong><strong>str|None</strong><strong>]</strong> (<em>*</em>) -- The input file name.</li>
+<li><strong>inputs</strong><strong> [</strong><strong>list|None</strong><strong>]</strong> (<em>*</em>) -- the list of values of the parameters</li>
+<li><strong>overwrite_flag</strong><strong> [</strong><strong>bool|False</strong><strong>]</strong> (<em>*</em>) -- flag that determined if the
+given input file will be automatically overwritten or
+if the user will be prompted first.</li>
+<li><strong>verbosity</strong><strong> [</strong><strong>bool|False</strong><strong>]</strong> (<em>*</em>) -- turns on and off verbose
+ouput.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="attribute">
+<dt>
+<code class="descname">* **verbose** [bool|False]</code></dt>
+<dd><p>determines if verbose
+execution is used.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="PyStrahl.core.editor.InputFileEditor.add">
+<code class="descname">add</code><span class="sig-paren">(</span><em>element=None</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyStrahl/core/editor.html#InputFileEditor.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyStrahl.core.editor.InputFileEditor.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a value (if given) to the input file. If it is not given,
+then the user is asked to input a value which is used.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>element</strong><strong> [</strong><strong>???|None</strong><strong>]</strong> (<em>*</em>) -- The element that should be
+added to the input file.</li>
+<li><strong>index</strong><strong> [</strong><strong>int|None</strong><strong>]</strong> (<em>*</em>) -- The location in the input file
+that the element should be placed.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyStrahl.core.editor.InputFileEditor.delete">
+<code class="descname">delete</code><span class="sig-paren">(</span><em>element=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyStrahl/core/editor.html#InputFileEditor.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyStrahl.core.editor.InputFileEditor.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the element given and if the element is
+not given, then remove the last value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>element</strong><strong> [</strong><strong>???|None</strong><strong>]</strong> (<em>*</em>) -- The element to be removed</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The output of either removing the given element or
+simply popping from the inputs list.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="PyStrahl.core.editor.InputFileEditor.write">
+<code class="descname">write</code><span class="sig-paren">(</span><em>main_fn</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/PyStrahl/core/editor.html#InputFileEditor.write"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#PyStrahl.core.editor.InputFileEditor.write" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the inputs list to a text file given by the file name.
+During this process we check every possible instance of date
+type in the inputs list and convert them to strings which can
+be read by STRAHL natively.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">InputFileEditor Object</a><ul>
+<li><a class="reference internal" href="#summary"><strong>Summary</strong></a></li>
+<li><a class="reference internal" href="#current-status"><strong>Current Status</strong></a></li>
+<li><a class="reference internal" href="#future-work"><strong>Future Work</strong></a></li>
+<li><a class="reference internal" href="#known-bugs"><strong>Known Bugs</strong></a></li>
+<li><a class="reference internal" href="#module-PyStrahl.core.editor"><strong>Source Code</strong></a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="parameter_file_editor.html"
+                        title="previous chapter">ParameterFileEditor Object</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="summary_file_editor.html"
+                        title="next chapter">SummaryFileEditor Object</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/input_file_editor.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="summary_file_editor.html" title="SummaryFileEditor Object"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="parameter_file_editor.html" title="ParameterFileEditor Object"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">PyStrahl 1.0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="strahl.html" >STRAHL Wrapper</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="editor.html" >Editor Objects</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Joshua Swerdlow.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.6.3.
+    </div>
+  </body>
+</html>

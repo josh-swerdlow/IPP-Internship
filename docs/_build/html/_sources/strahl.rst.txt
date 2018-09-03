@@ -20,23 +20,3 @@ can store the entire state of a STRAHL run (the parameter file and input file st
     editor
     query
     auxillary
-
-**Source Code**
-~~~~~~~~~~~~~~~
-
-.. module:: PyStrahl.core.strahl
-
-.. automodule:: interface
-    :members:
-
-.. automodule:: run
-    :members:
-
-.. automodule:: extract_results
-    :members:
-
-.. automodule:: extract_all
-    :members:
-
-.. automodule:: quick_input_file
-    :members:

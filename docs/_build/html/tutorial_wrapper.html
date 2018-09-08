@@ -55,7 +55,51 @@
             
   <div class="section" id="tutorial">
 <h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
-<p>In here I want to have a full tutorial with pictures and everything.</p>
+<p>In this tutorial, an outline for running PyStrahl will be demonstrated. This tutorial will show two simple ways to execute STRAHL through the PyStrahl interface via command line or programmatically. Finally, this tutorial will only scratch the surface of the full functionality of PyStrahl, but will still get the final result as needed.</p>
+<div class="section" id="interface">
+<h2>Interface<a class="headerlink" href="#interface" title="Permalink to this headline">¶</a></h2>
+<p>In PyStrahl, an interface has been implemented which can be run with little to no input from the user. The interface method is written into the PyStrahl.core.strahl module and can be run from the command line or a python script. This interface, given the file names of the commented parameter files will create the appropriate objects for the given file names, extract the commented parameters from the files, generate an input file, and optionally execute strahl with the given input file. It will generate an input file and summary file based on the name you give through the command line when prompted. In addition, the input file will have the parameter values as you specify through the command line when prompted.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># First a demonstration of the PyStrahl interface method</span>
+<span class="c1"># main_fn &#39;op12a_171122022_FeLBO3&#39;</span>
+
+<span class="n">main_fn</span><span class="o">=</span><span class="s1">&#39;op12a_171122022_FeLBO3_test&#39;</span>
+<span class="n">PyStrahl</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">strahl</span><span class="o">.</span><span class="n">interface</span><span class="p">(</span><span class="n">main_fn</span><span class="o">=</span><span class="s1">&#39;op12a_171122022_FeLBO3_test&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This above example will run the interface a just a single main parameter file.</p>
+</div>
+<div class="section" id="quick-input-file">
+<h2>Quick Input File<a class="headerlink" href="#quick-input-file" title="Permalink to this headline">¶</a></h2>
+<p>Alternatively, one does not need to go through the trouble of scanning the parameter files for commented parameters if one already knows all the parameters which are to be commented. For example, if one would like to run multiple STRAHL runs on 3 different values of the same parameter. In addition, this method will have no interaction with the command line so one can queue up multiple runs and let the code go.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># For example, I know that &#39;op12a_171122022_FeLBO3_test&#39; has</span>
+<span class="c1"># 6 parameters commented out.</span>
+
+<span class="c1"># &quot;# of interpolation points&quot;</span>
+<span class="n">D_interp_pts</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="c1"># &quot;rho polodial grid for interpolation&quot;</span>
+<span class="n">D_rho_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="c1"># &quot;D[m^2/s]&quot;</span>
+<span class="n">D</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">]</span>
+<span class="c1"># &quot;# of interpolation points&quot;</span>
+<span class="n">v_interp_pts</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="c1"># &quot;rho polodial grid for interpolation&quot;</span>
+<span class="n">v_rho_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="c1"># &quot;v[m/s]&quot;</span>
+<span class="n">v</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mf">2.1</span><span class="p">]</span>
+
+<span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">D_interp_pts</span><span class="p">,</span> <span class="n">D_rho_grid</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span>
+          <span class="n">v_interp_pts</span><span class="p">,</span> <span class="n">v_rho_grid</span><span class="p">,</span> <span class="n">v</span><span class="p">]</span>
+
+<span class="n">inpt_fn</span> <span class="o">=</span> <span class="s1">&#39;brand_new2&#39;</span>
+<span class="n">strahl</span><span class="o">.</span><span class="n">quick_input_file</span><span class="p">(</span><span class="n">main_fn</span><span class="o">=</span><span class="s1">&#39;op12a_171122022_FeLBO3_test&#39;</span><span class="p">,</span>
+                        <span class="n">inpt_fn</span><span class="o">=</span><span class="n">inpt_fn</span><span class="p">,</span>
+                        <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">)</span>
+
+<span class="n">strahl</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">inpt_fn</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the code snippet we set all the values for the the six parameter which are commented out in the main parameter file 'op12a_171122022_FeLBO3_test'. We then use the method quick_input_file found in PyStrahl.core.strahl which will generate an input file with the given main parameter file name, input file name, and input values (in order). Be warned, as documented in the quick_input_file method, this method will overwrite or create the input file given to it. Finally, we use a simple run method found in PyStrahl.core.strahl to execute a strahl run.</p>
+</div>
 </div>
 
 
@@ -64,6 +108,15 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Tutorial</a><ul>
+<li><a class="reference internal" href="#interface">Interface</a></li>
+<li><a class="reference internal" href="#quick-input-file">Quick Input File</a></li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="getting_started_wrapper.html"
                         title="previous chapter">Getting Started</a></p>
